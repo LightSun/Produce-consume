@@ -14,6 +14,25 @@ import java.util.List;
  */
 public class Utils {
 
+    public static long currentTimeMillis(){
+        return System.currentTimeMillis(); // for android make not the same
+    }
+
+    public static Float getFloat(String prop){
+        String v = null;
+        try {
+            v = System.getProperty(prop);
+        } catch (IllegalArgumentException | NullPointerException e) {
+        }
+        if (v != null) {
+            try {
+                return Float.valueOf(v);
+            } catch (NumberFormatException e) {
+            }
+        }
+        return null;
+    }
+
     public static <T> TaskNode<T> generateOrderedTasks(BaseProducer<T> producer, Iterable<T> ita,
                                                        ProductContext context, Scheduler scheduler, Producer.Callback<T> callback){
         final Iterator<T> it = ita.iterator();

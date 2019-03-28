@@ -19,7 +19,7 @@ public class PCThreadFactory implements ThreadFactory {
         this("PCThreadF", priority, daemon);
     }
 
-    public PCThreadFactory(String prefix, int priority,boolean daemon) {
+    public PCThreadFactory(String prefix, int priority, boolean daemon) {
         this.daemon = daemon;
         this.priority = priority;
         SecurityManager s = System.getSecurityManager();
