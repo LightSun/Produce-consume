@@ -23,7 +23,7 @@ public class DispatchConsumer<T> implements Consumer<T> {
         next.run();
     }
 
-    @Override
+    @Override @SuppressWarnings("unchecked")
     public void onEnd() {
         ArrayList<T> list = (ArrayList<T>) products.clone();
         products.clear();

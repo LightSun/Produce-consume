@@ -16,6 +16,8 @@ import java.util.List;
  */
 public class ProductManagerTest {
 
+    private static final Object sLock = new Object();
+
     @Test
     public void testNoOrder(){
         CollectionProducer<String> producer = new CollectionProducer<>(createTasks());
@@ -45,10 +47,20 @@ public class ProductManagerTest {
         source.setTransformer(Transformers.<String>unchangeTransformer());
 
         source.open(new TestConsumer<String>());
+        waitFinish();
+    }
+    private static void waitFinish(){
         try {
-            Thread.currentThread().join();
+            synchronized (sLock) {
+                sLock.wait();
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+    private static void markFinished(){
+        synchronized (sLock) {
+            sLock.notifyAll();
         }
     }
 
@@ -82,6 +94,7 @@ public class ProductManagerTest {
         protected void fire(List<T> products) {
             System.out.println("size = " + products.size());
             System.out.println(products);
+            markFinished();
         }
     }
 }
