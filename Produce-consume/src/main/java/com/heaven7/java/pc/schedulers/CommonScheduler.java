@@ -4,36 +4,42 @@ import com.heaven7.java.base.util.Disposable;
 import com.heaven7.java.base.util.Scheduler;
 import com.heaven7.java.pc.internal.Utils;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * the common scheduler
+ * the common scheduler which used a {@linkplain DelayTaskLooper} to loop the delay tasks. and run the task on executor.
  * @author heaven7
  */
-public class CommonScheduler extends BaseExecutorServiceScheduler implements Scheduler {
+public class CommonScheduler implements Scheduler {
 
     private static final DelayHelper HELPER = new DelayHelper();
 
-    public CommonScheduler(ExecutorService service) {
-        super(service);
+    private final AtomicReference<Executor> mExecutorRef;
+
+    public CommonScheduler(Executor executor) {
+        this.mExecutorRef = new AtomicReference<>(executor);
     }
 
     @Override
     public Worker newWorker() {
-        return new Worker(getExecutorService());
+        return new Worker(mExecutorRef.get());
     }
 
     private static class Worker implements Scheduler.Worker{
 
-        final ExecutorService mService;
-        public Worker(ExecutorService mService) {
-            this.mService = mService;
+        final Executor mService;
+
+        public Worker(Executor executor) {
+            this.mService = executor;
         }
         @Override
         public Disposable schedule(Runnable task) {
-            return new Disposable.FutureDisposable(mService.submit(task));
+            WrapTask wrapTask = new WrapTask(task);
+            mService.execute(wrapTask);
+            return wrapTask;
         }
         @Override
         public Disposable scheduleDelay(Runnable task, long delay, TimeUnit unit) {
@@ -46,18 +52,36 @@ public class CommonScheduler extends BaseExecutorServiceScheduler implements Sch
             return HELPER.scheduleDelay(mService, internalTask, unit.toMillis(initDelay));
         }
     }
+    private static class WrapTask implements Disposable, Runnable{
+        final AtomicBoolean mCancelled = new AtomicBoolean(false);
+        final Runnable task;
+        public WrapTask(Runnable task) {
+            this.task = task;
+        }
+        @Override
+        public void run() {
+             if(mCancelled.get()){
+                 return;
+             }
+            task.run();
+        }
+        @Override
+        public void dispose() {
+            mCancelled.compareAndSet(false, true);
+        }
+    }
 
     private static class InternalTask implements Runnable, Disposable{
         final AtomicBoolean mCancelled = new AtomicBoolean(false);
-        final ExecutorService service;
-        final DelayHelper worker;
+        final Executor service;
+        final DelayTaskLooper looper;
         final Runnable task;
         final long period;
         Disposable realDispose;
 
-        public InternalTask(ExecutorService service, DelayHelper worker, Runnable task, long period) {
+        public InternalTask(Executor service, DelayTaskLooper looper, Runnable task, long period) {
             this.service = service;
-            this.worker = worker;
+            this.looper = looper;
             this.task = task;
             this.period = period;
         }
@@ -69,7 +93,7 @@ public class CommonScheduler extends BaseExecutorServiceScheduler implements Sch
             }
             task.run();
             long cost = Utils.currentTimeMillis() - start;
-            realDispose = worker.scheduleDelay(service, this, Math.max(0, period - cost));
+            realDispose = looper.scheduleDelay(service, this, Math.max(0, period - cost));
         }
         @Override
         public void dispose() {

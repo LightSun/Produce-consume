@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author heaven7
  */
-public class PCThreadFactory implements ThreadFactory {
+/*public*/ class PCThreadFactory implements ThreadFactory {
 
     private static final AtomicInteger sPOOL_NUMBER = new AtomicInteger(1);
     private final ThreadGroup group;

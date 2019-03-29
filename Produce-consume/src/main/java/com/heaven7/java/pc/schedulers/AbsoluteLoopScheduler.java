@@ -20,12 +20,15 @@ public class AbsoluteLoopScheduler extends BaseExecutorServiceScheduler implemen
 
    // private static final float SLEEP_PERCENT;
     private static final long LOOP_KEEP_TIME;
+    private static final int QUEUE_SIZE;
 
     static {
       /*  Float percent = Utils.getFloat(Config.KEY_LOOP_SLEEP_PERCENT);
         SLEEP_PERCENT = percent != null ? Math.min(percent, 0.8f) : 0.5f;*/
-        Long time = Long.getLong(Config.KEY_LOOP_KEEP_TIME);
+        Long time = Long.getLong(Config.KEY_ABSOLUTE_LOOP_KEEP_TIME);
         LOOP_KEEP_TIME = time != null ? time : -1;
+        Integer size = Integer.getInteger(Config.KEY_ABSOLUTE_QUEUE_SIZE);
+        QUEUE_SIZE = size != null ? size : 128;
     }
 
     private volatile Thread mThread;
@@ -38,7 +41,7 @@ public class AbsoluteLoopScheduler extends BaseExecutorServiceScheduler implemen
 
     private void startLoop() {
         if(mThread == null){
-            LoopTask loopTask = new LoopTask(new ArrayBlockingQueue<RepeatTask>(128), LOOP_KEEP_TIME, this);
+            LoopTask loopTask = new LoopTask(new ArrayBlockingQueue<RepeatTask>(QUEUE_SIZE), LOOP_KEEP_TIME, this);
             if(mLoopTaskRef.compareAndSet(null, loopTask)){
                 mThread = new Thread(loopTask);
                 mThread.start();

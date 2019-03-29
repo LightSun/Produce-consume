@@ -2,6 +2,7 @@ package com.heaven7.java.pc.schedulers;
 
 import com.heaven7.java.base.util.DefaultPrinter;
 import com.heaven7.java.base.util.Disposable;
+import com.heaven7.java.pc.internal.Config;
 import com.heaven7.java.pc.internal.Utils;
 
 import java.lang.ref.WeakReference;
@@ -16,11 +17,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author heaven7
  */
-public class DelayHelper implements Runnable, Disposable {
+public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable {
 
+    private static final int QUEUE_SIZE;
+    static {
+        Integer size = Integer.getInteger(Config.KEY_DELAY_QUEUE_SIZE);
+        QUEUE_SIZE = size != null ? size : 128;
+    }
     private static final String TAG = "DelayHelper";
+
     private final AtomicBoolean mCancelled = new AtomicBoolean(false);
-    private final BlockingQueue<Task> mQueue = new ArrayBlockingQueue<>(128);
+    private final BlockingQueue<Task> mQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
     private final List<Task> mList = new ArrayList<>();
     private final Thread mThread;
 
@@ -30,6 +37,7 @@ public class DelayHelper implements Runnable, Disposable {
         this.mThread.start();
     }
 
+    @Override
     public Disposable scheduleDelay(Executor executor, Runnable task, long delay) {
         Task realTask = new Task(task, delay, executor);
         mQueue.offer(realTask);
@@ -64,7 +72,9 @@ public class DelayHelper implements Runnable, Disposable {
     }
     @Override
     public void dispose() {
-        mCancelled.compareAndSet(false, true);
+        if(mCancelled.compareAndSet(false, true)){
+            mThread.interrupt();
+        }
     }
 
     private static class Task implements Disposable {

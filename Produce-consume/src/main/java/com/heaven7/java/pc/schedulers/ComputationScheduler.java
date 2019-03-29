@@ -9,7 +9,7 @@ import java.util.concurrent.ThreadFactory;
 /**
  * @author heaven7
  */
-public class ComputationScheduler extends AbsoluteLoopScheduler implements Scheduler {
+public final class ComputationScheduler extends CommonScheduler implements Scheduler {
 
     private static final int THREAD_COUNT;
     private static final ThreadFactory sFACTORY;
