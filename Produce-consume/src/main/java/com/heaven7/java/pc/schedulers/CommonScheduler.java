@@ -5,6 +5,7 @@ import com.heaven7.java.base.util.Scheduler;
 import com.heaven7.java.pc.internal.Utils;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -37,9 +38,13 @@ public class CommonScheduler implements Scheduler {
         }
         @Override
         public Disposable schedule(Runnable task) {
-            WrapTask wrapTask = new WrapTask(task);
-            mService.execute(wrapTask);
-            return wrapTask;
+            if(mService instanceof ExecutorService){
+                return new Disposable.FutureDisposable(((ExecutorService) mService).submit(task));
+            }else {
+                WrapTask wrapTask = new WrapTask(task);
+                mService.execute(wrapTask);
+                return wrapTask;
+            }
         }
         @Override
         public Disposable scheduleDelay(Runnable task, long delay, TimeUnit unit) {
