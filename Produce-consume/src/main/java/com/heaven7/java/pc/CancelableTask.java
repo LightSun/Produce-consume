@@ -95,7 +95,6 @@ public final class CancelableTask implements Disposable {
         public InternalTask(CancelableTask task) {
             this.wrapTask = task;
         }
-
         @Override
         public void run() {
             Callback callback = wrapTask.callback;

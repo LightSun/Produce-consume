@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class Schedulers {
+public class TestSchedulers {
 
 	public static final Disposable EMPTY = new Disposable() {
 		@Override

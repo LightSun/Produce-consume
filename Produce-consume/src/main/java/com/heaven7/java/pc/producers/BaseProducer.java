@@ -1,7 +1,9 @@
 package com.heaven7.java.pc.producers;
 
+import com.heaven7.java.base.anno.JustForTest;
 import com.heaven7.java.base.util.Disposable;
 import com.heaven7.java.base.util.Scheduler;
+import com.heaven7.java.base.util.Throwables;
 import com.heaven7.java.pc.CancelableTask;
 import com.heaven7.java.pc.Producer;
 import com.heaven7.java.pc.ProductContext;
@@ -29,7 +31,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     private ExceptionHandleStrategy<T> mExceptionStrategy;
     private int mFlags;
 
-    protected static class BaseProductionProcess implements ProductionFlow{
+    protected static class BaseProductionProcess extends ProductionFlow{
 
         private final byte type;
         private final Object extra;
@@ -123,6 +125,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
         return post(scheduler, new Runnable() {
             @Override
             public void run() {
+                //TODO bug. 无序生产时，可能先走了end.再走的其他的。
                 callback.onProduced(context, t, EMPTY_TASK);
                 //if is closed or end. dispatch end
                 if(isClosed() || end){
@@ -171,6 +174,11 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
         Disposable disposable = scheduler.newWorker().schedule(cancelableTask.toActuallyTask());
         cancelableTask.setDisposable(disposable);
         return cancelableTask;
+    }
+
+    @JustForTest
+    public void assertTaskIsEmpty(){
+        Throwables.checkArgument(mTasks.isEmpty(), "task is not empty.");
     }
 
     private void endImpl(final ProductContext context, Scheduler scheduler, final Callback<T> callback) {

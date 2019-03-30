@@ -25,7 +25,7 @@ public class DispatchConsumer<T> implements Consumer<T> {
 
     @Override @SuppressWarnings("unchecked")
     public void onEnd() {
-        ArrayList<T> list = (ArrayList<T>) products.clone();
+        ArrayList<T> list = new ArrayList<>(products);
         products.clear();
         fire(list);
     }

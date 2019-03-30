@@ -1,5 +1,6 @@
 package com.heaven7.java.pc.pm;
 
+import com.heaven7.java.base.anno.VisibleForTest;
 import com.heaven7.java.base.util.Scheduler;
 import com.heaven7.java.pc.*;
 
@@ -8,7 +9,8 @@ import com.heaven7.java.pc.*;
  */
 public class SimpleProductManager<T, R> implements ProductManager<T, R> {
 
-    private final Producer<T> producer;
+    @VisibleForTest
+    /*private*/ final Producer<T> producer;
     private ProductContext mContext;
     private Scheduler scheduler;
     private Transformer<? super T, R> transformer;

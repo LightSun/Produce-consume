@@ -48,10 +48,10 @@ public interface Producer<T> {
     }
 
     class Params{
-        public ProductContext context;
-        public Scheduler scheduler;
-        public ProductionFlow pf;
-        public Callback<?> callback;
+        public final ProductContext context;
+        public final Scheduler scheduler;
+        public final ProductionFlow pf;
+        public final Callback<?> callback;
 
         public Params(ProductContext context, Scheduler scheduler, ProductionFlow pf, Callback<?> callback) {
             this.context = context;
@@ -60,11 +60,24 @@ public interface Producer<T> {
             this.callback = callback;
         }
     }
-    interface ProductionFlow{
-        byte TYPE_START      = 1;
-        byte TYPE_END        = 2;
-        byte TYPE_DO_PRODUCE = 3;
-        byte getType();
-        Object getExtra();
+    abstract class ProductionFlow{
+        public static final byte TYPE_START      = 1;
+        public static final byte TYPE_END        = 2;
+        public static final byte TYPE_DO_PRODUCE = 3;
+
+        public abstract byte getType();
+        public abstract Object getExtra();
+
+        String getTypeString(){
+            switch (getType()){
+                case TYPE_START:
+                    return "TYPE_START";
+                case TYPE_END:
+                    return "TYPE_END";
+                case TYPE_DO_PRODUCE:
+                    return "TYPE_DO_PRODUCE";
+            }
+            return null;
+        }
     }
 }
