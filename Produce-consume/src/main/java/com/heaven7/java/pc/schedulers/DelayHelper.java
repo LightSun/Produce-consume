@@ -33,7 +33,7 @@ public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable 
 
     public DelayHelper() {
         this.mThread = new Thread(this);
-        this.mThread.setDaemon(true);
+       // this.mThread.setDaemon(true);
         this.mThread.start();
     }
 
@@ -80,17 +80,17 @@ public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable 
     private static class Task implements Disposable {
         final Runnable task;
         final long targetTime;
-        SmartExecutor smartExecutor;
+        final SmartExecutor smartExecutor;
 
         public Task(Runnable task, long delay, Executor realService) {
             this.smartExecutor = new SmartExecutor(realService);
             this.task = task;
             this.targetTime = Utils.currentTimeMillis() + delay;
         }
-
+        // run the task at current time. if task need remove . return false.
         public boolean run() {
             if(Utils.currentTimeMillis() < targetTime){
-                return false;
+                return true;
             }
            return smartExecutor.execute(task);
         }
@@ -113,6 +113,7 @@ public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable 
                 this.executor = executor;
             }
         }
+        //return false. means task will be remove.
         public boolean execute(final Runnable task){
             if(mCancelled.get()){
                 return false;
@@ -123,7 +124,6 @@ public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable 
                     realDispose = new FutureDisposable(service.submit(task));
                 }else {
                     DefaultPrinter.getDefault().error(TAG,"execute","scheduler does not exist .");
-                    return false;
                 }
             }else {
                 executor.execute(new Runnable() {
@@ -135,7 +135,7 @@ public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable 
                     }
                 });
             }
-            return true;
+            return false;
         }
 
         @Override

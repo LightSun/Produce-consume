@@ -14,8 +14,6 @@ public class BaseTest {
     public static final  String MSG = "test ExceptionConsumer__@";
     protected static final List<String> sTasks = createTasks();
     private static final Object sLock = new Object();
-    private static AtomicBoolean sWait_Called = new AtomicBoolean(false);
-    private static AtomicBoolean sNotify_Called = new AtomicBoolean(false);
 
     public static List<String> createTasks() {
         List<String> list = new ArrayList<>();
@@ -26,11 +24,6 @@ public class BaseTest {
     }
 
     public static void waitFinish(){
-        sWait_Called.compareAndSet(false, true);
-        if(sNotify_Called.get()){
-            reset();
-            return;
-        }
         try {
             synchronized (sLock) {
                 sLock.wait();
@@ -39,20 +32,9 @@ public class BaseTest {
             e.printStackTrace();
         }
     }
-
-    private static void reset() {
-        sWait_Called.set(false);
-        sNotify_Called.set(false);
-    }
-
     public static void markFinished(){
-        final boolean waitCalled = sWait_Called.get();
         synchronized (sLock) {
             sLock.notifyAll();
-        }
-        sNotify_Called.compareAndSet(false, true);
-        if(waitCalled){
-            reset();
         }
     }
     public static class ExceptionConsumer<T> extends DispatchConsumer<T> {
