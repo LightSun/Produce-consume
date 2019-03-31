@@ -33,7 +33,7 @@ public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable 
 
     public DelayHelper() {
         this.mThread = new Thread(this);
-       // this.mThread.setDaemon(true);
+        this.mThread.setDaemon(true);
         this.mThread.start();
     }
 
@@ -51,7 +51,8 @@ public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable 
     public void run() {
         try {
             while (!mCancelled.get()) {
-                int count = mQueue.drainTo(mList);
+                mList.addAll(mQueue);
+                final int count = mList.size();
                 if (count == 0) {
                     synchronized (this) {
                         this.wait();

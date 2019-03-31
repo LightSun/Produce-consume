@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
-public class BaseSchedulerTest extends BaseTest {
+public abstract class BaseSchedulerTest extends BaseTest {
 
     protected Scheduler mScheduler;
 
@@ -16,7 +16,7 @@ public class BaseSchedulerTest extends BaseTest {
     }
 
     protected void setUp() {
-        mScheduler = new ComputationScheduler();
+       // mScheduler = new ComputationScheduler();
     }
 
     @Test
@@ -59,7 +59,7 @@ public class BaseSchedulerTest extends BaseTest {
             @Override
             public void run() {
                 long end = System.currentTimeMillis();
-                System.out.println("testDelay2: cost = " + (end - start) + " ,count = " + count);
+                System.out.println("testPeriod1: cost = " + (end - start) + " ,count = " + count);
                 start = end;
                 if(count ++ >= 10) {
                     markFinished();

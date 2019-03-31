@@ -26,7 +26,7 @@ public class DelayHelperTest extends BaseTest {
                 System.out.println("---------" + System.currentTimeMillis());
                 markFinished();
             }
-        }, 800);
+        }, 300);
         waitFinish();
         System.out.println("finished");
     }
