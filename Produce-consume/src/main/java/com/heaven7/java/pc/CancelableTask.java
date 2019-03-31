@@ -6,6 +6,7 @@ import com.heaven7.java.pc.internal.Exceptions;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * the cancelable task used to wrap the real task and callback.
  * @author heaven7
  */
 public final class CancelableTask implements Disposable {

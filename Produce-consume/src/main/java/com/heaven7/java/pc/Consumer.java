@@ -1,6 +1,7 @@
 package com.heaven7.java.pc;
 
 /**
+ * the consumer which can consume the product by {@linkplain #onConsume(Object, Runnable)}..
  * @author heaven7
  */
 public interface Consumer<T> {

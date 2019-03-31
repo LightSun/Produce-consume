@@ -4,6 +4,7 @@ import com.heaven7.java.base.util.Scheduler;
 import com.heaven7.java.pc.Consumer;
 
 /**
+ * the redirect consumer which can redirect to another worker of scheduler.
  * @author heaven7
  */
 public class RedirectConsumer<T> implements Consumer<T> {

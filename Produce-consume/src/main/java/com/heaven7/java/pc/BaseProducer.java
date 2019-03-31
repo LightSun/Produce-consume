@@ -204,7 +204,6 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     public void onTaskBegin(CancelableTask wrapTask) {
 
     }
-
     @Override
     public void onTaskEnd(CancelableTask wrapTask, boolean cancelled) {
         mTasks.remove(wrapTask);
@@ -235,7 +234,10 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     }
 
     /**
-     * mark produce end.
+     * mark produce end. this often called for produce on 'no-order'.
+     * @param context the product context
+     * @param scheduler the scheduler
+     * @param callback the callback
      */
     protected void markProduceEnd(ProductContext context, Scheduler scheduler, Callback<T> callback){
         if(!isClosed()){

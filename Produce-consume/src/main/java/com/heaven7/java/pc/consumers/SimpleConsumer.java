@@ -3,6 +3,7 @@ package com.heaven7.java.pc.consumers;
 import com.heaven7.java.pc.Consumer;
 
 /**
+ * the simple consumer just do the base things.
  * @author heaven7
  */
 public abstract class SimpleConsumer<T> implements Consumer<T> {

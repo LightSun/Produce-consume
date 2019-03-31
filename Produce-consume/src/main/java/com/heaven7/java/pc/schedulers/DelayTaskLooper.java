@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * the delay task looper. which used to loop the all delayed tasks on background.
+ * but execute the task on other thread.
  * @author heaven7
  */
 public interface DelayTaskLooper {

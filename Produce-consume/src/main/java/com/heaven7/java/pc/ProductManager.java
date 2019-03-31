@@ -3,6 +3,9 @@ package com.heaven7.java.pc;
 import com.heaven7.java.base.util.Scheduler;
 
 /**
+ * the product manager
+ * @param <T> the raw product type
+ * @param <R> the result product type after transform.
  * @author heaven7
  */
 public interface ProductManager<T, R> {

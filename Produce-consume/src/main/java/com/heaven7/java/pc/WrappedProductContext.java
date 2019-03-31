@@ -1,6 +1,7 @@
 package com.heaven7.java.pc;
 
 /**
+ * the wrapped product context
  * @author heaven7
  */
 public class WrappedProductContext implements ProductContext {

@@ -3,7 +3,7 @@ package com.heaven7.java.pc;
 import com.heaven7.java.base.util.Scheduler;
 
 /**
- * the task node which indicate a list of tasks.
+ * the task node which indicate an ordered  list tasks.
  * @param <T> the product type.
  */
 public class TaskNode<T> implements Runnable {

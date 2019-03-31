@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * the dispatcher consumer just collect the all products. and fire them batched.
  * @author heaven7
  */
 public class DispatchConsumer<T> implements Consumer<T> {

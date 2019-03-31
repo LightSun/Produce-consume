@@ -77,7 +77,7 @@ public class SimpleProductManager<T, R> implements ProductManager<T, R> {
         }
         @Override
         public void onProduced(ProductContext context, T t, Runnable next) {
-            R result = transformer.consume(context, t);
+            R result = transformer.transform(context, t);
             collector.onConsume(result, next);
         }
         @Override

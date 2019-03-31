@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
+ * the base executor-service scheduler
  * @author heaven7
  */
 public abstract class BaseExecutorServiceScheduler implements Scheduler {

@@ -7,6 +7,7 @@ import com.heaven7.java.pc.internal.Config;
 import java.util.concurrent.ThreadFactory;
 
 /**
+ * the computation scheduler which used a fixed size thread pool.
  * @author heaven7
  */
 public final class ComputationScheduler extends CommonScheduler implements Scheduler {

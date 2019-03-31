@@ -3,6 +3,7 @@ package com.heaven7.java.pc.schedulers;
 import com.heaven7.java.base.util.Disposable;
 import com.heaven7.java.base.util.Scheduler;
 import com.heaven7.java.pc.internal.Config;
+import com.heaven7.java.pc.internal.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -130,7 +131,6 @@ public class AbsoluteLoopScheduler extends BaseExecutorServiceScheduler implemen
             triggerTime = System.currentTimeMillis();
             try {
                 while (!shouldCancel()){
-                    long time = System.currentTimeMillis();
                     final int count = queue.drainTo(mList);
                     if(count == 0){
                         synchronized (this){
@@ -140,7 +140,7 @@ public class AbsoluteLoopScheduler extends BaseExecutorServiceScheduler implemen
                     }
                     for (int i = 0 ; i < count ; i ++){
                         RepeatTask task = mList.get(i);
-                        if(!task.run(time)){
+                        if(!task.run()){
                             queue.remove(task);
                         }
                     }
@@ -191,7 +191,7 @@ public class AbsoluteLoopScheduler extends BaseExecutorServiceScheduler implemen
             return mRunCount;
         }
 
-        public boolean run(long time){
+        public boolean run(){
             if(mCancelled.get()){
                 return false;
             }
@@ -199,6 +199,7 @@ public class AbsoluteLoopScheduler extends BaseExecutorServiceScheduler implemen
             if(mMaxCount > 0 && runCount >= mMaxCount){
                 return false;
             }
+            long time = Utils.currentTimeMillis();
             if(runCount == 0){
                 //first time
                 if((time - triggerTime) >= startDelay){
