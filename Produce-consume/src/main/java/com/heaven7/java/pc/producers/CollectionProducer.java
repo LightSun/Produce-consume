@@ -1,6 +1,7 @@
 package com.heaven7.java.pc.producers;
 
 import com.heaven7.java.base.util.Scheduler;
+import com.heaven7.java.pc.BaseProducer;
 import com.heaven7.java.pc.Producer;
 import com.heaven7.java.pc.ProductContext;
 import com.heaven7.java.pc.TaskNode;
@@ -26,21 +27,20 @@ public class CollectionProducer<T> extends BaseProducer<T> implements Producer<T
         if(collection instanceof List){
             List<T> list = (List<T>) this.collection;
             for(int i = 0, size = list.size() ; i < size ; i ++){
-                scheduleImpl(context, scheduler, list.get(i), callback, i == size - 1);
+                scheduleImpl(context, scheduler, list.get(i), callback);
                 if(isClosed()){
                     break;
                 }
             }
         }else {
-            int size = collection.size();
-            int count = 0;
             for (T t : collection){
-                scheduleImpl(context, scheduler, t, callback, count++ == size - 1);
+                scheduleImpl(context, scheduler, t, callback);
                 if(isClosed()){
                     break;
                 }
             }
         }
+        markProduceEnd(context, scheduler, callback);
     }
 
     @Override @SuppressWarnings("unchecked")

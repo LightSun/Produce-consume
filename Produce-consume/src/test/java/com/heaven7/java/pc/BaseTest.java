@@ -19,7 +19,7 @@ public class BaseTest {
 
     public static List<String> createTasks() {
         List<String> list = new ArrayList<>();
-        for (int i = 0 ; i < 50; i++){
+        for (int i = 0 ; i < 2000; i++){
             list.add("heaven7__" + i);
         }
         return list;

@@ -1,18 +1,15 @@
-package com.heaven7.java.pc.producers;
+package com.heaven7.java.pc;
 
 import com.heaven7.java.base.anno.JustForTest;
 import com.heaven7.java.base.util.Disposable;
 import com.heaven7.java.base.util.Scheduler;
 import com.heaven7.java.base.util.Throwables;
-import com.heaven7.java.pc.CancelableTask;
-import com.heaven7.java.pc.Producer;
-import com.heaven7.java.pc.ProductContext;
-import com.heaven7.java.pc.TaskNode;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * the producer which can schedule the tasks in order or not.
@@ -26,16 +23,21 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
 
         }
     };
+    private static final int STATE_START      = 1;
+    private static final int STATE_END        = 2;
+    private static final int STATE_NONE       = 0;
+
     private final AtomicBoolean mClosed = new AtomicBoolean(true);
     private final Set<CancelableTask> mTasks = Collections.synchronizedSet(new HashSet<CancelableTask>());
+    private final AtomicInteger mProduceState = new AtomicInteger(STATE_NONE);
     private ExceptionHandleStrategy<T> mExceptionStrategy;
     private int mFlags;
 
-    protected static class BaseProductionProcess extends ProductionFlow{
+    protected static class SimpleProductionFlow extends ProductionFlow{
 
         private final byte type;
         private final Object extra;
-        public BaseProductionProcess(byte type, Object extra) {
+        public SimpleProductionFlow(byte type, Object extra) {
             this.type = type;
             this.extra = extra;
         }
@@ -92,6 +94,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
 
     @Override
     public final void produce(final ProductContext context, final Scheduler scheduler, final Callback<T> callback) {
+        mProduceState.compareAndSet(STATE_NONE, STATE_START);
         final boolean ordered = hasFlags(FLAG_SCHEDULE_ORDERED);
         final Runnable produce = new Runnable() {
             @Override
@@ -108,7 +111,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
             public void run() {
                 callback.onStart(context, produce);
             }
-        }, new Params(context, scheduler, new BaseProductionProcess(ProductionFlow.TYPE_START, null), callback));
+        }, new Params(context, scheduler, new SimpleProductionFlow(ProductionFlow.TYPE_START, null), callback));
     }
 
     /**
@@ -117,22 +120,22 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
      * @param scheduler the scheduler
      * @param t the product
      * @param callback the callback
-     * @param end true if next is end.
      * @return the the scheduled task. which can be cancelled.
      */
     public final Disposable scheduleImpl(final ProductContext context, final Scheduler scheduler, final T t,
-                                             final Callback<T> callback, final boolean end){
+                                             final Callback<T> callback){
         return post(scheduler, new Runnable() {
             @Override
             public void run() {
-                //TODO bug. 无序生产时，可能先走了end.再走的其他的。
-                callback.onProduced(context, t, EMPTY_TASK);
-                //if is closed or end. dispatch end
-                if(isClosed() || end){
+                if(!isClosed()){
+                    callback.onProduced(context, t, EMPTY_TASK);
+                    //if is closed or end. dispatch end. left 1 .means only current task is running.
+                    checkEndState(context, scheduler, callback, 1);
+                }else {
                     endImpl(context, scheduler, callback);
                 }
             }
-        }, new Params(context, scheduler, new BaseProductionProcess(ProductionFlow.TYPE_DO_PRODUCE, t), callback));
+        }, new Params(context, scheduler, new SimpleProductionFlow(ProductionFlow.TYPE_DO_PRODUCE, t), callback));
     }
 
     /**
@@ -165,7 +168,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
             public void run() {
                 callback.onProduced(context, t, nextRun);
             }
-        }, new Params(context, scheduler, new BaseProductionProcess(ProductionFlow.TYPE_DO_PRODUCE, t), callback));
+        }, new Params(context, scheduler, new SimpleProductionFlow(ProductionFlow.TYPE_DO_PRODUCE, t), callback));
     }
 
     public Disposable post(Scheduler scheduler, Runnable task, Params params){
@@ -186,9 +189,10 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
             @Override
             public void run() {
                 close();
+                mProduceState.compareAndSet(STATE_END, STATE_NONE);
                 callback.onEnd(context);
             }
-        }, new Params(context, scheduler, new BaseProductionProcess(ProductionFlow.TYPE_END, null),
+        }, new Params(context, scheduler, new SimpleProductionFlow(ProductionFlow.TYPE_END, null),
                 callback));
     }
     @Override
@@ -217,20 +221,44 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     }
 
     /**
-     * call this to produce all products really. no this may not in order
+     * check the end state. if the end state and no more tasks. just dispatch end.
+     * @param context the context
+     * @param scheduler the scheduler.
+     * @param callback the callback
+     * @param leftTaskCount the left task count. for {@linkplain #markProduceEnd(ProductContext, Scheduler, Callback)} this is 0.
+     */
+    private void checkEndState(ProductContext context, Scheduler scheduler, Callback<T> callback, int leftTaskCount) {
+        //this method help check end state for produce no-order products.
+        if(mProduceState.get() == STATE_END && mTasks.size() == leftTaskCount){
+            endImpl(context, scheduler, callback);
+        }
+    }
+
+    /**
+     * mark produce end.
+     */
+    protected void markProduceEnd(ProductContext context, Scheduler scheduler, Callback<T> callback){
+        if(!isClosed()){
+            if(mProduceState.compareAndSet(STATE_START, STATE_END)){
+                checkEndState(context, scheduler, callback, 0);
+            }
+        }
+    }
+
+    /**
+     * call this to produce all products really. note: this produce may not in order. it is determined by scheduler.
      * @param context the product context
      * @param scheduler the scheduler. can be null
      * @param callback the callback
      */
-    protected abstract void produce0(ProductContext context, Scheduler scheduler, Callback<T> callback);
+    protected void produce0(ProductContext context, Scheduler scheduler, Callback<T> callback){
 
+    }
     /**
-     * produce the product in ordered
+     * produce the product in ordered.
      * @param context the context
      * @param scheduler the scheduler
      * @param callback the callback
      */
-    protected void produceOrdered(ProductContext context, Scheduler scheduler, Callback<T> callback) {
-
-    }
+    protected abstract void produceOrdered(ProductContext context, Scheduler scheduler, Callback<T> callback);
 }

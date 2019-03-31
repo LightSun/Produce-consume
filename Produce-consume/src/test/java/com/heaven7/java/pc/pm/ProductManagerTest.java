@@ -1,17 +1,12 @@
 package com.heaven7.java.pc.pm;
 
-import com.heaven7.java.pc.BaseTest;
-import com.heaven7.java.pc.Producer;
-import com.heaven7.java.pc.TestSchedulers;
-import com.heaven7.java.pc.Transformers;
+import com.heaven7.java.pc.*;
 import com.heaven7.java.pc.consumers.DispatchConsumer;
-import com.heaven7.java.pc.producers.BaseProducer;
 import com.heaven7.java.pc.producers.CollectionProducer;
 import com.heaven7.java.pc.producers.IterableProducer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,7 +19,7 @@ public class ProductManagerTest extends BaseTest{
         CollectionProducer<String> producer = new CollectionProducer<>(sTasks);
         testImpl(producer);
     }
-    @Test //TODO have bug
+    @Test
     public void testNoOrder2(){
         IterableProducer<String> producer = new IterableProducer<>(sTasks);
         testImpl(producer);
@@ -125,6 +120,7 @@ public class ProductManagerTest extends BaseTest{
         @Override
         public void onEnd() {
             System.out.println("end -------");
+           // new Throwable().printStackTrace();
             super.onEnd();
         }
 

@@ -2,6 +2,7 @@ package com.heaven7.java.pc.producers;
 
 import com.heaven7.java.base.anno.Nullable;
 import com.heaven7.java.base.util.Scheduler;
+import com.heaven7.java.pc.BaseProducer;
 import com.heaven7.java.pc.Producer;
 import com.heaven7.java.pc.ProductContext;
 import com.heaven7.java.pc.TaskNode;
@@ -25,8 +26,9 @@ public class IterableProducer<T> extends BaseProducer<T> implements Producer<T> 
     protected void produce0(final ProductContext context, @Nullable Scheduler scheduler, final Callback<T> callback) {
         Iterator<T> it = this.it.iterator();
         while (it.hasNext() && !isClosed()){
-            scheduleImpl(context, scheduler, it.next(), callback, !it.hasNext());
+            scheduleImpl(context, scheduler, it.next(), callback);
         }
+        markProduceEnd(context, scheduler, callback);
     }
 
     @Override

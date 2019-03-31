@@ -1,7 +1,6 @@
 package com.heaven7.java.pc;
 
 import com.heaven7.java.base.util.Scheduler;
-import com.heaven7.java.pc.producers.BaseProducer;
 
 /**
  * the task node which indicate a list of tasks.
@@ -29,7 +28,7 @@ public class TaskNode<T> implements Runnable {
     public void scheduleOrdered() {
         if (current != null) {
             producer.scheduleOrdered(context, scheduler, current, callback,
-                    nextTask != null ? this : null);
+                        nextTask != null ? this : null);
         }
     }
 

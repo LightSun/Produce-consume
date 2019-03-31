@@ -1,10 +1,10 @@
 package com.heaven7.java.pc.internal;
 
 import com.heaven7.java.base.util.Scheduler;
+import com.heaven7.java.pc.BaseProducer;
 import com.heaven7.java.pc.Producer;
 import com.heaven7.java.pc.ProductContext;
 import com.heaven7.java.pc.TaskNode;
-import com.heaven7.java.pc.producers.BaseProducer;
 
 import java.util.Iterator;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
 public class Utils {
 
     public static long currentTimeMillis(){
-        return System.currentTimeMillis(); // for android make not the same
+        return System.currentTimeMillis(); // for android may not the same
     }
 
     public static Float getFloat(String prop){

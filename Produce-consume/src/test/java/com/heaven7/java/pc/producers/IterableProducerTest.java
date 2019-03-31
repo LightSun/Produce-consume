@@ -1,9 +1,6 @@
 package com.heaven7.java.pc.producers;
 
-import com.heaven7.java.pc.BaseTest;
-import com.heaven7.java.pc.Producer;
-import com.heaven7.java.pc.ProductContext;
-import com.heaven7.java.pc.TestSchedulers;
+import com.heaven7.java.pc.*;
 import org.junit.Assert;
 import org.junit.Test;
 
