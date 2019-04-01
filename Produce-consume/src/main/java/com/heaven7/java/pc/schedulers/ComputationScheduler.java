@@ -10,7 +10,7 @@ import java.util.concurrent.ThreadFactory;
  * the computation scheduler which used a fixed size thread pool.
  * @author heaven7
  */
-public final class ComputationScheduler extends CommonScheduler implements Scheduler {
+/*public*/ final class ComputationScheduler extends CommonScheduler implements Scheduler {
 
     private static final int THREAD_COUNT;
     private static final ThreadFactory sFACTORY;

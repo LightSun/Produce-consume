@@ -5,6 +5,6 @@ public class ComputationSchedulerTest extends BaseSchedulerTest {
     @Override
     protected void setUp() {
         super.setUp();
-        mScheduler = new ComputationScheduler();
+        mScheduler = Schedulers.compute();
     }
 }

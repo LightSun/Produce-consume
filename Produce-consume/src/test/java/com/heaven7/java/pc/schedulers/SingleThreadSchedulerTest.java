@@ -5,7 +5,7 @@ public class SingleThreadSchedulerTest extends BaseSchedulerTest {
     @Override
     protected void setUp() {
         super.setUp();
-        mScheduler = new SingleThreadScheduler();
+        mScheduler = Schedulers.single();
     }
 
 }

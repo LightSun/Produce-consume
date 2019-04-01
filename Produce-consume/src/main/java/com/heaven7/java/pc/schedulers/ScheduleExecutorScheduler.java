@@ -10,14 +10,13 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * @author heaven7
  */
-public class ScheduleExecutorScheduler implements Scheduler {
+/*public*/ class ScheduleExecutorScheduler implements Scheduler {
 
     private final AtomicReference<ScheduledExecutorService> mRefService;
 
     public ScheduleExecutorScheduler(ScheduledExecutorService service) {
         this.mRefService = new AtomicReference<>(service);
     }
-
     @Override
     public Worker newWorker() {
         return new ScheduledWorker(mRefService.get());

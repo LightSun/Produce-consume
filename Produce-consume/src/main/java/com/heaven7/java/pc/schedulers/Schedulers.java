@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author heaven7
  */
 public final class Schedulers {
+    private Schedulers(){}
 
     private static class Creator{
         static final AtomicReference<Scheduler> REF_IO = new AtomicReference<>();

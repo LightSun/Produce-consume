@@ -5,6 +5,6 @@ public class IOSchedulerTest extends BaseSchedulerTest {
     @Override
     protected void setUp() {
         super.setUp();
-        mScheduler = new IoScheduler();
+        mScheduler = Schedulers.io();
     }
 }

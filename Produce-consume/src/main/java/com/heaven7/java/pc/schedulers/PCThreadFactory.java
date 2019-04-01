@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
     }
 
     public Thread newThread(Runnable r) {
-        PCThread t = new PCThread(group, r,
+        Thread t = new Thread(group, r,
                 namePrefix + threadNumber.getAndIncrement(),
                 0);
         t.setDaemon(daemon);
@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
         return t;
     }
 
-    private static class PCThread extends Thread{
+    /*private static class PCThread extends Thread{
         public PCThread() {
         }
         public PCThread(Runnable target) {
@@ -63,5 +63,5 @@ import java.util.concurrent.atomic.AtomicInteger;
         public PCThread(ThreadGroup group, Runnable target, String name, long stackSize) {
             super(group, target, name, stackSize);
         }
-    }
+    }*/
 }

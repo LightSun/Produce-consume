@@ -6,7 +6,7 @@ import com.heaven7.java.pc.internal.Config;
 /**
  * @author heaven7
  */
-public final class IoScheduler extends ScheduleExecutorScheduler {
+/*public*/ final class IoScheduler extends ScheduleExecutorScheduler {
 
     private static final int CORE_SIZE;
     private static final PCThreadFactory sFACTORY;
