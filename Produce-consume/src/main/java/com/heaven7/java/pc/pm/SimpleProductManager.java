@@ -56,6 +56,11 @@ public class SimpleProductManager<T, R> implements ProductManager<T, R> {
     }
 
     @Override
+    public boolean isOpened() {
+        return producer.isOpened();
+    }
+
+    @Override
     public void close() {
         producer.close();
     }

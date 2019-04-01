@@ -8,6 +8,7 @@ import com.heaven7.java.base.util.Throwables;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -74,10 +75,16 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     public TaskNode<T> createTaskNode(ProductContext context, Scheduler scheduler, Callback<T> callback){
          return new TaskNode<T>(this, context, scheduler, callback);
     }
+
+    @Override
+    public boolean isOpened() {
+        return !mClosed.get();
+    }
     @Override
     public boolean open() {
         return mClosed.compareAndSet(true, false);
     }
+
     public boolean isClosed(){
         return mClosed.get();
     }
@@ -171,10 +178,19 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
         }, new Params(context, scheduler, new SimpleProductionFlow(ProductionFlow.TYPE_DO_PRODUCE, t), callback));
     }
 
-    public Disposable post(Scheduler scheduler, Runnable task, Params params){
+    protected Disposable post(Scheduler scheduler, Runnable task, Params params){
         CancelableTask cancelableTask = CancelableTask.of(task, this);
         cancelableTask.setProduceParams(params);
         Disposable disposable = scheduler.newWorker().schedule(cancelableTask.toActuallyTask());
+        cancelableTask.setDisposable(disposable);
+        return cancelableTask;
+    }
+
+    protected Disposable postDelay(Scheduler scheduler, Runnable task, long delayInMills, Params params){
+        CancelableTask cancelableTask = CancelableTask.of(task, this);
+        cancelableTask.setProduceParams(params);
+        Disposable disposable = scheduler.newWorker().scheduleDelay(
+                cancelableTask.toActuallyTask(), delayInMills, TimeUnit.MILLISECONDS);
         cancelableTask.setDisposable(disposable);
         return cancelableTask;
     }

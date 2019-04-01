@@ -57,6 +57,9 @@ public interface Producer<T> {
      */
     void deleteFlags(int flags);
 
+
+    boolean isOpened();
+
     /**
      * the callback of produce
      * @param <T> the product type

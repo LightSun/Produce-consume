@@ -10,15 +10,47 @@ import com.heaven7.java.base.util.Scheduler;
  */
 public interface ProductManager<T, R> {
 
+    /**
+     * set the product context
+     * @param context the product context
+     */
     void setProductContext(ProductContext context);
+
+    /**
+     * the product context
+     * @return the product context
+     */
     ProductContext getProductContext();
 
+    /**
+     * set the scheduler
+     * @param scheduler the scheduler
+     */
     void setScheduler(Scheduler scheduler);
+
+    /**
+     * get the scheduler
+     * @return the scheduler
+     */
     Scheduler getScheduler();
 
+    /**
+     * set product transformer
+     * @param transformer the transformer
+     */
     void setTransformer(Transformer<? super T, R> transformer);
+
+    /**
+     * get the product transformer
+     * @return true.
+     */
     Transformer<? super T, R> getTransformer();
 
+    /**
+     * indicate the product manager is opened or not.
+     * @return true if it is opened
+     */
+    boolean isOpened();
     /**
      * open the pm with transformer and consumers
      * @param collector the consumers which used to consumer result.
