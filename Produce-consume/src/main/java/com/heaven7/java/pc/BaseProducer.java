@@ -270,7 +270,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
      * @param callback the callback
      */
     protected void produce0(ProductContext context, Scheduler scheduler, Callback<T> callback){
-
+        throw new UnsupportedOperationException();
     }
     /**
      * produce the product in ordered.
@@ -278,5 +278,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
      * @param scheduler the scheduler
      * @param callback the callback
      */
-    protected abstract void produceOrdered(ProductContext context, Scheduler scheduler, Callback<T> callback);
+    protected void produceOrdered(ProductContext context, Scheduler scheduler, Callback<T> callback){
+        throw new UnsupportedOperationException();
+    }
 }

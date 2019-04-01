@@ -1,8 +1,8 @@
-package com.heaven7.java.pc;
+package com.heaven7.java.pc.pm;
 
 import com.heaven7.java.base.util.Disposable;
 import com.heaven7.java.base.util.Scheduler;
-import com.heaven7.java.pc.pm.SimpleProductManager;
+import com.heaven7.java.pc.*;
 
 /**
  * the product manager service.
