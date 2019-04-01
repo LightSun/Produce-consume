@@ -2,6 +2,7 @@ package com.heaven7.java.pc.schedulers;
 
 import com.heaven7.java.base.util.Disposable;
 import com.heaven7.java.base.util.Scheduler;
+import com.heaven7.java.base.util.Throwables;
 import com.heaven7.java.pc.internal.Utils;
 
 import java.util.concurrent.Executor;
@@ -16,25 +17,36 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class CommonScheduler implements Scheduler {
 
+    /**
+     * the default delay task looper .
+     */
     private static final DelayHelper HELPER = new DelayHelper();
 
     private final AtomicReference<Executor> mExecutorRef;
+    private final DelayTaskLooper mLooper;
 
-    public CommonScheduler(Executor executor) {
+    public CommonScheduler(DelayTaskLooper mLooper, Executor executor) {
+        Throwables.checkNull(mLooper);
         this.mExecutorRef = new AtomicReference<>(executor);
+        this.mLooper = mLooper;
+    }
+    public CommonScheduler(Executor executor) {
+        this(HELPER, executor);
     }
 
     @Override
     public Worker newWorker() {
-        return new Worker(mExecutorRef.get());
+        return new Worker(mLooper, mExecutorRef.get());
     }
 
     private static class Worker implements Scheduler.Worker{
 
         final Executor mService;
+        final DelayTaskLooper looper;
 
-        public Worker(Executor executor) {
+        public Worker(DelayTaskLooper looper, Executor executor) {
             this.mService = executor;
+            this.looper = looper;
         }
         @Override
         public Disposable schedule(Runnable task) {
@@ -48,13 +60,13 @@ public class CommonScheduler implements Scheduler {
         }
         @Override
         public Disposable scheduleDelay(Runnable task, long delay, TimeUnit unit) {
-            return HELPER.scheduleDelay(mService, task, unit.toMillis(delay));
+            return looper.scheduleDelay(mService, task, unit.toMillis(delay));
         }
 
         @Override
         public Disposable schedulePeriodically(Runnable task, long initDelay, long period, TimeUnit unit) {
-            InternalTask internalTask = new InternalTask(mService, HELPER, task, period);
-            return HELPER.scheduleDelay(mService, internalTask, unit.toMillis(initDelay));
+            InternalTask internalTask = new InternalTask(mService, looper, task, period);
+            return looper.scheduleDelay(mService, internalTask, unit.toMillis(initDelay));
         }
     }
     private static class WrapTask implements Disposable, Runnable{

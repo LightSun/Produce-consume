@@ -15,23 +15,32 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * the delay helper which handle the delay task and run on the executor.
+ * note after you called {@linkplain DelayHelper#dispose()}. the looper will have nothing effect.
  * @author heaven7
  */
-public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable {
+public class DelayHelper implements DelayTaskLooper, Runnable, Disposable {
 
     private static final int QUEUE_SIZE;
+
     static {
         Integer size = Integer.getInteger(Config.KEY_DELAY_QUEUE_SIZE);
         QUEUE_SIZE = size != null ? size : 128;
     }
+
     private static final String TAG = "DelayHelper";
 
     private final AtomicBoolean mCancelled = new AtomicBoolean(false);
     private final BlockingQueue<Task> mQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
     private final List<Task> mList = new ArrayList<>();
     private final Thread mThread;
+    private final boolean mDisposeImmediately;
 
-    public DelayHelper() {
+    public DelayHelper(){
+        this(true);
+    }
+    public DelayHelper(boolean disposeImmediately) {
+        this.mDisposeImmediately = disposeImmediately;
         this.mThread = new Thread(this);
         this.mThread.setDaemon(true);
         this.mThread.start();
@@ -41,7 +50,7 @@ public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable 
     public Disposable scheduleDelay(Executor executor, Runnable task, long delay) {
         Task realTask = new Task(task, delay, executor);
         mQueue.offer(realTask);
-        synchronized (this){
+        synchronized (this) {
             this.notify();
         }
         return realTask;
@@ -50,7 +59,8 @@ public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable 
     @Override
     public void run() {
         try {
-            while (!mCancelled.get()) {
+            onStartLoop();
+            while (!shouldExitLoop()) {
                 mList.addAll(mQueue);
                 final int count = mList.size();
                 if (count == 0) {
@@ -59,23 +69,52 @@ public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable 
                     }
                     continue;
                 }
-                for (int i = 0 ; i < count ; i ++){
+                for (int i = 0; i < count; i++) {
                     Task task = mList.get(i);
-                    if(!task.run()){
+                    if (!task.run()) {
                         mQueue.remove(task);
                     }
                 }
                 mList.clear();
             }
+            onEndLoop();
         } catch (InterruptedException e) {
-           // e.printStackTrace();
+            // ignore
+        }finally{
+            mQueue.clear();
+            mList.clear();
         }
     }
+
     @Override
     public void dispose() {
-        if(mCancelled.compareAndSet(false, true)){
-            mThread.interrupt();
+        if (mCancelled.compareAndSet(false, true)) {
+            if (mDisposeImmediately) {
+                mThread.interrupt();
+            }
         }
+    }
+
+    public boolean isCancelled(){
+        return mCancelled.get();
+    }
+
+    /**
+     * called on start loop
+     */
+    protected void onStartLoop() {}
+
+    /**
+     * called on end loop.
+     */
+    protected void onEndLoop() {}
+
+    /**
+     * check if need exit the loop. default impl is check cancelled or not.
+     * @return true if should exit loop.
+     */
+    protected boolean shouldExitLoop() {
+        return mCancelled.get();
     }
 
     private static class Task implements Disposable {
@@ -90,63 +129,65 @@ public final class DelayHelper implements DelayTaskLooper, Runnable, Disposable 
         }
         // run the task at current time. if task need remove . return false.
         public boolean run() {
-            if(Utils.currentTimeMillis() < targetTime){
+            if (Utils.currentTimeMillis() < targetTime) {
                 return true;
             }
-           return smartExecutor.execute(task);
+            return smartExecutor.execute(task);
         }
+
         @Override
         public void dispose() {
             smartExecutor.dispose();
         }
     }
 
-    private static class SmartExecutor implements Disposable{
+    private static class SmartExecutor implements Disposable {
         final AtomicBoolean mCancelled = new AtomicBoolean(false);
         private Executor executor;
         private WeakReference<ExecutorService> weakExecutor;
         Disposable realDispose;
 
         public SmartExecutor(Executor executor) {
-            if(executor instanceof ExecutorService){
+            if (executor instanceof ExecutorService) {
                 weakExecutor = new WeakReference<ExecutorService>((ExecutorService) executor);
-            }else {
+            } else {
                 this.executor = executor;
             }
         }
-        //return false. means task will be remove.
-        public boolean execute(final Runnable task){
-            if(mCancelled.get()){
+        // return false. means task will be remove.
+        public boolean execute(final Runnable task) {
+            if (mCancelled.get()) {
                 return false;
             }
-            if(executor == null){
+            if (executor == null) {
                 ExecutorService service = weakExecutor.get();
-                if(service != null){
+                if (service != null) {
                     realDispose = new FutureDisposable(service.submit(task));
-                }else {
-                    DefaultPrinter.getDefault().error(TAG,"execute","scheduler does not exist .");
+                } else {
+                    DefaultPrinter.getDefault().error(TAG, "execute", "scheduler does not exist .");
                 }
-            }else {
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(!mCancelled.get()){
-                            task.run();
-                        }
-                    }
-                });
+            } else {
+                executor.execute(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!mCancelled.get()) {
+                                    task.run();
+                                }
+                            }
+                        });
             }
             return false;
         }
 
         @Override
         public void dispose() {
-             if(mCancelled.compareAndSet(false, true)){
-                 if(realDispose != null){
-                     realDispose.dispose();
-                     realDispose = null;
-                 }
-             }
+            if (mCancelled.compareAndSet(false, true)) {
+                if (realDispose != null) {
+                    realDispose.dispose();
+                    realDispose = null;
+                }
+            }
         }
     }
 }

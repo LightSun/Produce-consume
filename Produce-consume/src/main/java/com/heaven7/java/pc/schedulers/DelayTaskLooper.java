@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService;
  * but execute the task on other thread.
  * @author heaven7
  */
-public interface DelayTaskLooper {
+public interface DelayTaskLooper extends Disposable{
 
     /**
      * schedule the task to the looper. and when the delay time reached. the executor will used to execute the task. if
