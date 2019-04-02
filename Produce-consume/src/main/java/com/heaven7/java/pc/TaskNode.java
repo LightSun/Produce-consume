@@ -6,7 +6,7 @@ import com.heaven7.java.base.util.Scheduler;
  * the task node which indicate an ordered  list tasks.
  * @param <T> the product type.
  */
-public class TaskNode<T> implements Runnable {
+public final class TaskNode<T> implements Runnable {
 
     public static final TaskNode<?> EMPTY = new TaskNode<>(null, null, null, null);
 

@@ -28,7 +28,6 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     private static final int STATE_END        = 2;
     private static final int STATE_NONE       = 0;
 
-    private final Object mLock = new Object();
     private final AtomicBoolean mClosed = new AtomicBoolean(true);
     private final Set<CancelableTask> mTasks = Collections.synchronizedSet(new HashSet<CancelableTask>());
     private final AtomicInteger mProduceState = new AtomicInteger(STATE_NONE);
@@ -123,7 +122,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     }
 
     /**
-     * schedule the task , but may not in order.
+     * schedule the task , but may not in order. this often called by subclass. outside shouldn't call this.
      * @param context the context
      * @param scheduler the scheduler
      * @param t the product
@@ -148,6 +147,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
 
     /**
      * schedule the task as ordered. if producer is closed or next is null. will dispatch end.
+     * this often called by subclass or {@linkplain TaskNode}. others shouldn't call this.
      * @param context the context
      * @param scheduler the scheduler
      * @param t the product to schedule
