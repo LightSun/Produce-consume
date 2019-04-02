@@ -46,8 +46,8 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
         void close();
 
         /**
-         * indicate the pipe is closed or not.
-         * @return true if is closed.
+         * indicate the pipe is closed or not. unless you call {@linkplain #close()} or else this always return false.
+         * @return true if pip is closed.
          */
         boolean isClosed();
     }
