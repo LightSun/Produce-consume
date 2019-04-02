@@ -243,7 +243,7 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
         final List<T> pendings = new ArrayList<>();
         final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
         /** the flag to act close when producer is ready */
-        final AtomicBoolean mCloseCmdActivated = new AtomicBoolean();
+        final AtomicBoolean mCloseCmdActivated = new AtomicBoolean(false);
         final AtomicBoolean mPipClosed = new AtomicBoolean();
 
         public Pipe0(PipeProducer<T> producer) {
@@ -253,7 +253,7 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
         @Override
         public void addProduct(T t) {
             if(isClosed()){
-                throw new IllegalStateException("pipe is closed");
+                throw new IllegalStateException("pip is closed");
             }
             if (producer.isPrepared()) {
                 producer.fire(t, null);
@@ -270,7 +270,7 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
         @Override
         public void addProducts(List<T> ts) {
             if(isClosed()){
-                throw new IllegalStateException("pipe is closed");
+                throw new IllegalStateException("pip is closed");
             }
             if (producer.isPrepared()) {
                 producer.fire(null, ts);
@@ -296,7 +296,7 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
 
         @Override
         public boolean isClosed() {
-            return producer.isClosed() || mPipClosed.get();
+            return mPipClosed.get();
         }
 
         public boolean hasPendingProducts() {

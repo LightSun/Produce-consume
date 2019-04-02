@@ -3,6 +3,8 @@ package com.heaven7.java.pc.producers;
 import com.heaven7.java.base.util.Scheduler;
 import com.heaven7.java.pc.Producer;
 import com.heaven7.java.pc.schedulers.Schedulers;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,6 +22,7 @@ public class PipeProducerTest extends IterableProducerTest {
         mScheduler.newWorker().schedule(new Task<T>(tasks, producer.getPipe()));
         return producer;
     }
+
     private static class Task<T> implements Runnable{
         final Collection<T> tasks;
         final PipeProducer.Pipe<T> pipe;
@@ -31,6 +34,9 @@ public class PipeProducerTest extends IterableProducerTest {
         @Override
         public void run() {
             //here mock the task
+            if(pipe.isClosed()){
+                System.out.println("pipe is closed");//默认是关闭的。
+            }
             pipe.addProducts(new ArrayList<T>(tasks));
             pipe.close();
            // markFinished();

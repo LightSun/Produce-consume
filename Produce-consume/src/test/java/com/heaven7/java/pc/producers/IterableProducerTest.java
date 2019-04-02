@@ -74,7 +74,7 @@ public class IterableProducerTest extends BaseTest{
         producer.produce(sContext, TestSchedulers.GROUP_ASYNC,  new Callback0(producer.hasFlags(Producer.FLAG_SCHEDULE_ORDERED)));
         waitFinish();
     }
-    private static class ExceptionCallback implements Producer.Callback<String>{
+    protected static class ExceptionCallback implements Producer.Callback<String>{
 
         @Override
         public void onStart(ProductContext context, Runnable next) {
@@ -119,7 +119,7 @@ public class IterableProducerTest extends BaseTest{
         }
         @Override
         public void onProduced(ProductContext context, String o, Runnable next) {
-            System.out.println("onProduced: " + o);
+          //  System.out.println("onProduced: " + o);
             Assert.assertTrue(context == sContext);
             products.add(o);
             next.run();
