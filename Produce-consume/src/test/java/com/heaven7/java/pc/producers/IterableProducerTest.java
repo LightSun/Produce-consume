@@ -63,13 +63,13 @@ public class IterableProducerTest extends BaseTest{
         testImpl(producer, new SimpleCallback());
     }
 
-    private void testImpl(Producer<String> producer, Producer.Callback<String> callback) {
+    protected void testImpl(Producer<String> producer, Producer.Callback<String> callback) {
         producer.open();
         producer.produce(sContext, TestSchedulers.GROUP_ASYNC,  callback);
         waitFinish();
     }
 
-    private void testImpl(Producer<String> producer) {
+    protected void testImpl(Producer<String> producer) {
         producer.open();
         producer.produce(sContext, TestSchedulers.GROUP_ASYNC,  new Callback0(producer.hasFlags(Producer.FLAG_SCHEDULE_ORDERED)));
         waitFinish();
@@ -119,13 +119,14 @@ public class IterableProducerTest extends BaseTest{
         }
         @Override
         public void onProduced(ProductContext context, String o, Runnable next) {
+            System.out.println("onProduced: " + o);
             Assert.assertTrue(context == sContext);
             products.add(o);
             next.run();
         }
         @Override
         public void onEnd(ProductContext context) {
-            System.out.println("onEnd ---");
+            System.out.println("onEnd ---" + products.size());
             Assert.assertTrue(context == sContext);
             if(inOrder){
                 Assert.assertTrue(sTasks.equals(products));

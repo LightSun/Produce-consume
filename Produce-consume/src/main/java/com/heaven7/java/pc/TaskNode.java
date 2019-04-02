@@ -14,6 +14,7 @@ public class TaskNode<T> implements Runnable {
     private final ProductContext context;
     private final Scheduler scheduler;
     private final Producer.Callback<T> callback;
+    private Runnable next;
 
     public T current;
     public TaskNode nextTask;
@@ -27,9 +28,17 @@ public class TaskNode<T> implements Runnable {
 
     public void scheduleOrdered() {
         if (current != null) {
-            producer.scheduleOrdered(context, scheduler, current, callback,
-                        nextTask != null ? this : null);
+            Runnable toNext = nextTask != null ? this : next;
+            producer.scheduleOrdered(context, scheduler, current, callback, toNext);
         }
+    }
+
+    /**
+     * set the runnable attach to the tail node. as the final runnable.
+     * @param next the final runnable
+     */
+    public void setTailNext(Runnable next) {
+        getTailNode().next = next;
     }
 
     public void reset(){
@@ -38,6 +47,13 @@ public class TaskNode<T> implements Runnable {
             nextTask.reset();
             nextTask = null;
         }
+    }
+
+    private TaskNode getTailNode(){
+        if(nextTask == null){
+            return this;
+        }
+        return nextTask.getTailNode();
     }
 
     @Override

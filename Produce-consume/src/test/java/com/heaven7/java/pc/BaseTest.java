@@ -16,8 +16,11 @@ public class BaseTest {
     private static final Object sLock = new Object();
 
     public static List<String> createTasks() {
+        return createTasks(200);
+    }
+    public static List<String> createTasks(int count) {
         List<String> list = new ArrayList<>();
-        for (int i = 0 ; i < 2000; i++){
+        for (int i = 0 ; i < count; i++){
             list.add("heaven7__" + i);
         }
         return list;

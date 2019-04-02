@@ -28,6 +28,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     private static final int STATE_END        = 2;
     private static final int STATE_NONE       = 0;
 
+    private final Object mLock = new Object();
     private final AtomicBoolean mClosed = new AtomicBoolean(true);
     private final Set<CancelableTask> mTasks = Collections.synchronizedSet(new HashSet<CancelableTask>());
     private final AtomicInteger mProduceState = new AtomicInteger(STATE_NONE);
@@ -200,26 +201,15 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
         Throwables.checkArgument(mTasks.isEmpty(), "task is not empty.");
     }
 
-    private void endImpl(final ProductContext context, Scheduler scheduler, final Callback<T> callback) {
-        post(scheduler, new Runnable() {
-            @Override
-            public void run() {
-                close();
-                mProduceState.compareAndSet(STATE_END, STATE_NONE);
-                callback.onEnd(context);
-            }
-        }, new Params(context, scheduler, new SimpleProductionFlow(ProductionFlow.TYPE_END, null),
-                callback));
-    }
     @Override
     public void onTaskPlan(CancelableTask wrapTask) {
          mTasks.add(wrapTask);
     }
-
     @Override
     public void onTaskBegin(CancelableTask wrapTask) {
 
     }
+
     @Override
     public void onTaskEnd(CancelableTask wrapTask, boolean cancelled) {
         mTasks.remove(wrapTask);
@@ -234,17 +224,29 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
             throw e;
         }
     }
+    protected void endImpl(final ProductContext context, Scheduler scheduler, final Callback<T> callback) {
+        mProduceState.set(STATE_NONE);
+        post(scheduler, new Runnable() {
+            @Override
+            public void run() {
+                close();
+                callback.onEnd(context);
+            }
+        }, new Params(context, scheduler, new SimpleProductionFlow(ProductionFlow.TYPE_END, null),
+                callback));
+    }
 
     /**
      * check the end state. if the end state and no more tasks. just dispatch end.
+     * this often called for produce on 'no-order'.
      * @param context the context
      * @param scheduler the scheduler.
      * @param callback the callback
      * @param leftTaskCount the left task count. for {@linkplain #markProduceEnd(ProductContext, Scheduler, Callback)} this is 0.
      */
     private void checkEndState(ProductContext context, Scheduler scheduler, Callback<T> callback, int leftTaskCount) {
-        //this method help check end state for produce no-order products.
-        if(mProduceState.get() == STATE_END && mTasks.size() == leftTaskCount){
+        // this method help check end state for produce no-order products.
+        if (mProduceState.get() == STATE_END && mTasks.size() == leftTaskCount) {
             endImpl(context, scheduler, callback);
         }
     }
@@ -257,7 +259,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
      */
     protected void markProduceEnd(ProductContext context, Scheduler scheduler, Callback<T> callback){
         if(!isClosed()){
-            if(mProduceState.compareAndSet(STATE_START, STATE_END)){
+            if (mProduceState.compareAndSet(STATE_START, STATE_END)) {
                 checkEndState(context, scheduler, callback, 0);
             }
         }
