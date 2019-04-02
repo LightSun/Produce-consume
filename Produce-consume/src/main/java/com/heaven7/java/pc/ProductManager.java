@@ -54,7 +54,7 @@ public interface ProductManager<T, R> {
     /**
      * open the pm with transformer and consumers
      * @param collector the consumers which used to consumer result.
-     * @return true if open success.
+     * @return true if open success. false if already opened.
      */
     boolean open(Consumer<? super R> collector);
 

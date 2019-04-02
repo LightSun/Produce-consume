@@ -84,7 +84,7 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
             };
 
     public PipeProducer() {
-        this(128);
+        this(Integer.MAX_VALUE);
     }
 
     public PipeProducer(int queueSize) {
@@ -241,7 +241,7 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
 
         final PipeProducer<T> producer;
         final List<T> pendings = new ArrayList<>();
-        final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+        final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
         /** the flag to act close when producer is ready */
         final AtomicBoolean mCloseCmdActivated = new AtomicBoolean();
         final AtomicBoolean mPipClosed = new AtomicBoolean();
