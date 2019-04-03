@@ -16,7 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * create a pipe producer , which wait to add product
+ * create a pipe producer , who used a absolute thread to wait msg which was produced by {@linkplain Pipe#addProduct(Object)}
+ * or {@linkplain Pipe#addProducts(List)}.
  *
  * @author heaven7
  */
