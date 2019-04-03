@@ -244,7 +244,7 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
         final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
         /** the flag to act close when producer is ready */
         final AtomicBoolean mCloseCmdActivated = new AtomicBoolean(false);
-        final AtomicBoolean mPipClosed = new AtomicBoolean();
+        final AtomicBoolean mPipClosed = new AtomicBoolean(false);
 
         public Pipe0(PipeProducer<T> producer) {
             this.producer = producer;
@@ -286,11 +286,12 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
 
         @Override
         public void close() {
-            mPipClosed.compareAndSet(false, true);
-            if (producer.isPrepared()) {
-                producer.fire(null, null);
-            } else {
-                mCloseCmdActivated.compareAndSet(false, true);
+            if(mPipClosed.compareAndSet(false, true)){
+                if (producer.isPrepared()) {
+                    producer.fire(null, null);
+                } else {
+                    mCloseCmdActivated.compareAndSet(false, true);
+                }
             }
         }
 
