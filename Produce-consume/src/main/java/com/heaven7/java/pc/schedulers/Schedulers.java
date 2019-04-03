@@ -1,38 +1,62 @@
 package com.heaven7.java.pc.schedulers;
 
+import com.heaven7.java.base.anno.NeedAndroidImpl;
+import com.heaven7.java.base.util.Platforms;
 import com.heaven7.java.base.util.Scheduler;
+import com.heaven7.java.base.util.threadpool.Executors2;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.atomic.AtomicReference;
+
+import static com.heaven7.java.pc.schedulers.Schedulers.ANDROID_MAIN;
 
 
 /**
  * the scheduler factory. which can create multi type schedulers.
  * @author heaven7
  */
+@NeedAndroidImpl(ANDROID_MAIN)
 public final class Schedulers {
+
+    static final String ANDROID_MAIN = "com.heaven7.java.pc.schedulers.AndroidMainScheduler";
     private Schedulers(){}
 
-    private static class Creator{
-        static final AtomicReference<Scheduler> REF_IO = new AtomicReference<>();
-        static final AtomicReference<Scheduler> REF_COMPUTE = new AtomicReference<>();
-        static final AtomicReference<Scheduler> REF_SINGLE = new AtomicReference<>();
+    private static class IoHolder{
+        static final Scheduler DEFAULT  = new IoScheduler();
+    }
+    private static class ComputeHolder{
+        static final Scheduler DEFAULT  = new ComputationScheduler();
+    }
+    private static class SingleHolder{
+        static final Scheduler DEFAULT  = new SingleThreadScheduler();
+    }
+    private static class MainHolder{
+        static final Scheduler DEFAULT;
+        static {
+            try {
+                DEFAULT = (Scheduler) Class.forName(ANDROID_MAIN).newInstance();
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                throw new RuntimeException("can't load class '" + ANDROID_MAIN + "'", e);
+            }
+        }
+    }
+    public static Scheduler main(){
+        if(!Platforms.isAndroid()){
+            throw new UnsupportedOperationException("only android support main scheduler.");
+        }
+        return MainHolder.DEFAULT;
     }
     public static Scheduler io(){
-        AtomicReference<Scheduler> refIo = Creator.REF_IO;
-        refIo.compareAndSet(null, new IoScheduler());
-        return refIo.get();
+        return IoHolder.DEFAULT;
     }
     public static Scheduler compute(){
-        AtomicReference<Scheduler> refIo = Creator.REF_COMPUTE;
-        refIo.compareAndSet(null, new ComputationScheduler());
-        return refIo.get();
+        return ComputeHolder.DEFAULT;
     }
     public static Scheduler single(){
-        AtomicReference<Scheduler> refIo = Creator.REF_SINGLE;
-        refIo.compareAndSet(null, new SingleThreadScheduler());
-        return refIo.get();
+        return SingleHolder.DEFAULT;
+    }
+    public static Scheduler newCached(){
+        return new CommonScheduler(Executors2.newCachedThreadPool());
     }
     public static Scheduler scheduleExecutor(ScheduledExecutorService service){
         return new ScheduleExecutorScheduler(service);

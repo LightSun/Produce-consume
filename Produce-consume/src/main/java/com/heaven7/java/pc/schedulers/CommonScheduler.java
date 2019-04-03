@@ -17,11 +17,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class CommonScheduler implements Scheduler {
 
-    /**
-     * the default delay task looper .
-     */
-    private static final DelayHelper HELPER = new DelayHelper();
-
     private final AtomicReference<Executor> mExecutorRef;
     private final DelayTaskLooper mLooper;
 
@@ -31,7 +26,7 @@ public class CommonScheduler implements Scheduler {
         this.mLooper = mLooper;
     }
     public CommonScheduler(Executor executor) {
-        this(HELPER, executor);
+        this(DelayHelper.DEFAULT, executor);
     }
 
     @Override

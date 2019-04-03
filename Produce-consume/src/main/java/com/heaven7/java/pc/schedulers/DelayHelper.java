@@ -21,6 +21,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class DelayHelper implements DelayTaskLooper, Runnable, Disposable {
 
+    /**
+     * the default delay task looper .
+     */
+    public static final DelayHelper DEFAULT = new DelayHelper();
+
     private static final int QUEUE_SIZE;
 
     static {
