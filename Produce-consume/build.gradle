@@ -28,7 +28,7 @@ publish {
     userOrg = 'lightsun'
     groupId = 'com.heaven7.java.pc'
     artifactId = 'Produce-consume'
-    publishVersion = '1.0.0-beta'
+    publishVersion = '1.0.0'
     desc = 'this is a java lib which used for produce and cosumer. '
     website = 'https://github.com/LightSun/Produce-consume'
 }

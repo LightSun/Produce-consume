@@ -28,7 +28,6 @@ public class CommonScheduler implements Scheduler {
     public CommonScheduler(Executor executor) {
         this(DelayHelper.DEFAULT, executor);
     }
-
     @Override
     public Worker newWorker() {
         return new Worker(mLooper, mExecutorRef.get());
