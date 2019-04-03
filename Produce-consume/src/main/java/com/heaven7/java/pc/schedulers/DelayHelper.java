@@ -8,6 +8,7 @@ import com.heaven7.java.pc.internal.Utils;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
@@ -24,19 +25,21 @@ public class DelayHelper implements DelayTaskLooper, Runnable, Disposable {
     /**
      * the default delay task looper .
      */
-    public static final DelayHelper DEFAULT = new DelayHelper();
+    public static final DelayHelper DEFAULT;
 
     private static final int QUEUE_SIZE;
 
     static {
-        Integer size = Integer.getInteger(Config.KEY_DELAY_QUEUE_SIZE);
-        QUEUE_SIZE = size != null ? size : 128;
+        Integer size = Integer.getInteger(Config.KEY_DELAY_QUEUE_SIZE, null);
+        QUEUE_SIZE = size != null && size > 0 ? size : 128;
+
+        DEFAULT = new DelayHelper();
     }
 
     private static final String TAG = "DelayHelper";
 
     private final AtomicBoolean mCancelled = new AtomicBoolean(false);
-    private final BlockingQueue<Task> mQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
+    private final BlockingQueue<Task> mQueue;
     private final List<Task> mList = new ArrayList<>();
     private final Thread mThread;
     private final boolean mDisposeImmediately;
@@ -45,6 +48,8 @@ public class DelayHelper implements DelayTaskLooper, Runnable, Disposable {
         this(true);
     }
     public DelayHelper(boolean disposeImmediately) {
+        this.mQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
+
         this.mDisposeImmediately = disposeImmediately;
         this.mThread = new Thread(this);
         this.mThread.setDaemon(true);

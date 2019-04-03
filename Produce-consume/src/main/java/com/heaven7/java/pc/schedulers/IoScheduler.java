@@ -16,7 +16,7 @@ import com.heaven7.java.pc.internal.Config;
                 Integer.getInteger(Config.KEY_IO_PRIORITY, Thread.NORM_PRIORITY)));
         sFACTORY = new PCThreadFactory(priority, true);
 
-        Integer coreSize = Integer.getInteger(Config.KEY_IO_CORE_SIZE);
+        Integer coreSize = Integer.getInteger(Config.KEY_IO_CORE_SIZE, 0);
         CORE_SIZE = coreSize != null ? Math.max(coreSize, 0) : 0;
     }
 

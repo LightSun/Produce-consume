@@ -34,9 +34,6 @@ public class PipeProducerTest extends IterableProducerTest {
         @Override
         public void run() {
             //here mock the task
-            if(pipe.isClosed()){
-                System.out.println("pipe is closed");//默认是关闭的。
-            }
             pipe.addProducts(new ArrayList<T>(tasks));
             pipe.close();
            // markFinished();

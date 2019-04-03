@@ -21,7 +21,7 @@ import java.util.concurrent.ThreadFactory;
         sFACTORY = new PCThreadFactory(priority, true);
 
         final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
-        Integer count = Integer.getInteger(Config.KEY_COMPUTATION_THREAD_COUNT);
+        Integer count = Integer.getInteger(Config.KEY_COMPUTATION_THREAD_COUNT, 0);
         THREAD_COUNT = count != null ? cap(CPU_COUNT, count) : CPU_COUNT;
     }
 
