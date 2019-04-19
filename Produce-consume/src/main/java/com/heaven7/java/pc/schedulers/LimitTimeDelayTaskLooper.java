@@ -16,8 +16,8 @@ public class LimitTimeDelayTaskLooper extends DelayHelper implements DelayTaskLo
     private long mTriggerTime;
 
     static {
-        Long time = Long.getLong(Config.KEY_TIME_LIMIT_LOOP_KEEP_TIME, null);
-        DEFAULT_KEEP_TIME = time != null ? time : -1;
+        Long time = Long.getLong(Config.KEY_TIME_LIMIT_LOOP_KEEP_TIME, null); //in seconds
+        DEFAULT_KEEP_TIME = time != null ? time * 1000: -1;
     }
     public LimitTimeDelayTaskLooper(boolean disposeImmediately, Runnable mEnd) {
         this(DEFAULT_KEEP_TIME, disposeImmediately, mEnd);
