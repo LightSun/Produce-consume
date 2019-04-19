@@ -72,10 +72,6 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
         this.mExceptionStrategy = strategy;
     }
 
-    public TaskNode<T> createTaskNode(ProductContext context, Scheduler scheduler, Callback<T> callback){
-         return new TaskNode<T>(this, context, scheduler, callback);
-    }
-
     @Override
     public boolean isOpened() {
         return !mClosed.get();
