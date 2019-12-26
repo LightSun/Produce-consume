@@ -127,11 +127,6 @@ public class DelayHelper implements DelayTaskLooper, Runnable, Disposable {
     protected boolean shouldExitLoop() {
         return mCancelled.get();
     }
-
-    private void removeTask(Task task) {
-        mQueue.remove(task);
-    }
-
     private static class Task implements Disposable {
         final Runnable task;
         final long targetTime;
