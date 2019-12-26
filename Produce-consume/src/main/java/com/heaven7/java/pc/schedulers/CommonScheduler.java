@@ -59,8 +59,28 @@ public class CommonScheduler implements Scheduler {
 
         @Override
         public Disposable schedulePeriodically(Runnable task, long initDelay, long period, TimeUnit unit) {
-            InternalTask internalTask = new InternalTask(mService, looper, task, period);
-            return looper.scheduleDelay(mService, internalTask, unit.toMillis(initDelay));
+            InternalTask internalTask = new InternalTask(mService, looper, task, unit.toMillis(period));
+            Disposable scheduleDis = looper.scheduleDelay(mService, internalTask, unit.toMillis(initDelay));
+            return new ComposeDisposable(scheduleDis, internalTask);
+        }
+    }
+    private static class ComposeDisposable implements Disposable{
+        Disposable disposable1;
+        Disposable disposable2;
+        public ComposeDisposable(Disposable disposable1, Disposable disposable2) {
+            this.disposable1 = disposable1;
+            this.disposable2 = disposable2;
+        }
+        @Override
+        public void dispose() {
+            if(disposable1 != null){
+                disposable1.dispose();
+                disposable1 = null;
+            }
+            if(disposable2 != null){
+                disposable2.dispose();
+                disposable2 = null;
+            }
         }
     }
     private static class WrapTask implements Disposable, Runnable{
@@ -96,13 +116,19 @@ public class CommonScheduler implements Scheduler {
             this.task = task;
             this.period = period;
         }
+
         @Override
         public void run() {
             final long start = Utils.currentTimeMillis();
+            //before task run check it cancel
             if(mCancelled.get()){
                 return;
             }
             task.run();
+            //after task run check it cancel
+            if(mCancelled.get()){
+                return;
+            }
             long cost = Utils.currentTimeMillis() - start;
             realDispose = looper.scheduleDelay(service, this, Math.max(0, period - cost));
         }

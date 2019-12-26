@@ -8,6 +8,7 @@ import com.heaven7.java.pc.internal.Utils;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -127,6 +128,10 @@ public class DelayHelper implements DelayTaskLooper, Runnable, Disposable {
         return mCancelled.get();
     }
 
+    private void removeTask(Task task) {
+        mQueue.remove(task);
+    }
+
     private static class Task implements Disposable {
         final Runnable task;
         final long targetTime;
@@ -148,6 +153,17 @@ public class DelayHelper implements DelayTaskLooper, Runnable, Disposable {
         @Override
         public void dispose() {
             smartExecutor.dispose();
+        }
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Task task1 = (Task) o;
+            return Objects.equals(task, task1.task);
+        }
+        @Override
+        public int hashCode() {
+            return Objects.hash(task);
         }
     }
 
