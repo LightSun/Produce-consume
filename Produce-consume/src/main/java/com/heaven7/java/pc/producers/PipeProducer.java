@@ -92,6 +92,15 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
         mQueue = new LinkedBlockingDeque<>(queueSize);
     }
 
+    /**
+     * get the left product size.
+     * @return the product size.
+     * @since 1.0.2
+     */
+    public int getLeftProductSize(){
+        return mQueue.size() + mPipe.getPendingSize();
+    }
+
     @Override
     protected void produceOrdered(
             ProductContext context, Scheduler scheduler, Callback<T> callback) {
@@ -328,6 +337,14 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
                 pendings.clear();
             } finally {
                 lock.writeLock().unlock();
+            }
+        }
+        public int getPendingSize() {
+            lock.readLock().lock();
+            try {
+                return pendings.size();
+            }finally {
+                lock.readLock().unlock();
             }
         }
     }
