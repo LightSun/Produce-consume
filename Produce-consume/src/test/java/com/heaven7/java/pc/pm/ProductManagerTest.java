@@ -43,7 +43,7 @@ public class ProductManagerTest extends BaseTest{
             @Override
             public void handleException(Producer<String> producer, Producer.Params params, RuntimeException e) {
                 //DefaultPrinter.getDefault().error("testException", "handleException", e);
-                Assert.assertTrue(MSG.equals(e.getMessage()));
+                Assert.assertEquals(MSG, e.getMessage());
                 markFinished();
             }
         };
@@ -58,18 +58,6 @@ public class ProductManagerTest extends BaseTest{
         waitFinish();
     }
 
-    @Test
-    public void testException2(){
-        CollectionProducer<String> producer = new CollectionProducer<>(sTasks);
-        producer.addFlags(Producer.FLAG_SCHEDULE_ORDERED);
-       // producer.setExceptionHandleStrategy(strategy);
-
-        DirectProductManager<String> source = new DirectProductManager<>(producer);
-        source.setScheduler(TestSchedulers.GROUP_ASYNC);
-
-        source.open(new ExceptionConsumer<>());
-        waitFinish();
-    }
     @Test
     public void testCancel(){
         CollectionProducer<String> producer = new CollectionProducer<>(sTasks);
@@ -142,7 +130,7 @@ public class ProductManagerTest extends BaseTest{
             System.out.println("size = " + products.size());
             System.out.println(products);
             if(inOrder){
-                Assert.assertTrue(sTasks.equals(products));
+                Assert.assertEquals(sTasks, products);
             }else {
                 for (String task : sTasks){
                     Assert.assertTrue(products.contains(task));
