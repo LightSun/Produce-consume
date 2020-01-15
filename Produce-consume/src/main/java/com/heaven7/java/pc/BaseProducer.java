@@ -24,6 +24,13 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
 
         }
     };
+    private static final Producer.ExceptionHandleStrategy<Object> DEFAULT_EXCEPTION_HANDLER
+            = new Producer.ExceptionHandleStrategy<Object>() {
+        @Override
+        public void handleException(Producer<Object> producer, Producer.Params params, RuntimeException e) {
+            e.printStackTrace();
+        }
+    };
     private static final int STATE_START      = 1;
     private static final int STATE_END        = 2;
     private static final int STATE_NONE       = 0;
@@ -31,7 +38,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     private final AtomicBoolean mClosed = new AtomicBoolean(true);
     private final Set<CancelableTask> mTasks = Collections.synchronizedSet(new HashSet<CancelableTask>());
     private final AtomicInteger mProduceState = new AtomicInteger(STATE_NONE);
-    private ExceptionHandleStrategy<T> mExceptionStrategy;
+    private ExceptionHandleStrategy<T> mExceptionStrategy = (ExceptionHandleStrategy<T>) DEFAULT_EXCEPTION_HANDLER;
     private int mFlags;
 
     protected static class SimpleProductionFlow extends ProductionFlow{

@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * @author heaven7
  */
-public class Utils {
+public final class Utils {
 
     public static long currentTimeMillis(){
         return System.currentTimeMillis(); // for android may not the same

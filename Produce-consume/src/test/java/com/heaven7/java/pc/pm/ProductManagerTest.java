@@ -57,6 +57,19 @@ public class ProductManagerTest extends BaseTest{
         source.open(new ExceptionConsumer<>());
         waitFinish();
     }
+
+    @Test
+    public void testException2(){
+        CollectionProducer<String> producer = new CollectionProducer<>(sTasks);
+        producer.addFlags(Producer.FLAG_SCHEDULE_ORDERED);
+       // producer.setExceptionHandleStrategy(strategy);
+
+        DirectProductManager<String> source = new DirectProductManager<>(producer);
+        source.setScheduler(TestSchedulers.GROUP_ASYNC);
+
+        source.open(new ExceptionConsumer<>());
+        waitFinish();
+    }
     @Test
     public void testCancel(){
         CollectionProducer<String> producer = new CollectionProducer<>(sTasks);
