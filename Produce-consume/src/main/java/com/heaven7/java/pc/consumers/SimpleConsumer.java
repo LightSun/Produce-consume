@@ -6,7 +6,7 @@ import com.heaven7.java.pc.Consumer;
  * the simple consumer just do the base things.
  * @author heaven7
  */
-public abstract class SimpleConsumer<T> implements Consumer<T> {
+public class SimpleConsumer<T> implements Consumer<T> {
 
     @Override
     public void onStart(Runnable next) {
