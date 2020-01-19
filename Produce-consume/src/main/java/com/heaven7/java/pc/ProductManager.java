@@ -2,6 +2,8 @@ package com.heaven7.java.pc;
 
 import com.heaven7.java.base.util.Scheduler;
 
+import java.util.Collection;
+
 /**
  * the product manager
  * @param <T> the raw product type
@@ -57,6 +59,15 @@ public interface ProductManager<T, R> {
      * @return true if open success. false if already opened.
      */
     boolean open(Consumer<? super R> collector);
+
+
+    /**
+     * open the producer with multi consumers. that means one product will only dispatch to one consumer.
+     * @param candidateConsumers the Candidate consumers
+     * @param selectionStrategy the select strategy
+     * @return  true if open success, false if already opened.
+     */
+    boolean openMulti(Collection<Consumer<? super R>> candidateConsumers, SelectionStrategy<R> selectionStrategy);
 
     /**
      * close the pm. this make the consumers end.

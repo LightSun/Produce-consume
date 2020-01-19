@@ -3,6 +3,9 @@ package com.heaven7.java.pc.pm;
 import com.heaven7.java.base.anno.VisibleForTest;
 import com.heaven7.java.base.util.Scheduler;
 import com.heaven7.java.pc.*;
+import com.heaven7.java.pc.consumers.SelectionStrategyConsumer;
+
+import java.util.Collection;
 
 /**
  * @author heaven7
@@ -53,6 +56,11 @@ public class SimpleProductManager<T, R> implements ProductManager<T, R> {
         }
         producer.produce(mContext, scheduler, new Callback0<T,R>(this, transformer, collector));
         return true;
+    }
+
+    @Override
+    public boolean openMulti(Collection<Consumer<? super R>> candidateConsumers, SelectionStrategy<R> selectionStrategy) {
+        return open(new SelectionStrategyConsumer<R>(candidateConsumers, selectionStrategy));
     }
 
     @Override

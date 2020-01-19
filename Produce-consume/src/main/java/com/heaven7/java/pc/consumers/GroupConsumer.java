@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class GroupConsumer<T> implements Consumer<T> {
 
-    private final Collection<Consumer<? super T>> mConsumers;
+    /*private*/ final Collection<Consumer<? super T>> mConsumers;
 
     public GroupConsumer(Consumer<? super T>...consumers){
         this(new ArrayList<Consumer<? super T>>(Arrays.asList(consumers)));
