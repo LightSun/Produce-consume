@@ -5,6 +5,7 @@ import com.heaven7.java.base.util.Disposable;
 import com.heaven7.java.base.util.Scheduler;
 import com.heaven7.java.base.util.Throwables;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -94,7 +95,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     @Override
     public void close() {
         if(mClosed.compareAndSet(false, true)){
-            for (CancelableTask task : mTasks){
+            for (CancelableTask task : new ArrayList<>(mTasks)){
                 task.cancel();
                 task.reset();
             }
