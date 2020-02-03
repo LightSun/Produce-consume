@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * the producer which can schedule the tasks in order or not.
+ *
  * @author heaven7
  */
 public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Callback {
@@ -32,9 +33,9 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
             e.printStackTrace();
         }
     };
-    private static final int STATE_START      = 1;
-    private static final int STATE_END        = 2;
-    private static final int STATE_NONE       = 0;
+    private static final int STATE_START = 1;
+    private static final int STATE_END = 2;
+    private static final int STATE_NONE = 0;
 
     private final AtomicBoolean mClosed = new AtomicBoolean(true);
     private final Set<CancelableTask> mTasks = Collections.synchronizedSet(new HashSet<CancelableTask>());
@@ -42,18 +43,21 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     private ExceptionHandleStrategy<T> mExceptionStrategy = (ExceptionHandleStrategy<T>) DEFAULT_EXCEPTION_HANDLER;
     private int mFlags;
 
-    protected static class SimpleProductionFlow extends ProductionFlow{
+    protected static class SimpleProductionFlow extends ProductionFlow {
 
         private final byte type;
         private final Object extra;
+
         public SimpleProductionFlow(byte type, Object extra) {
             this.type = type;
             this.extra = extra;
         }
+
         @Override
         public byte getType() {
             return type;
         }
+
         @Override
         public Object getExtra() {
             return extra;
@@ -84,18 +88,20 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     public boolean isOpened() {
         return !mClosed.get();
     }
+
     @Override
     public boolean open() {
         return mClosed.compareAndSet(true, false);
     }
 
-    public boolean isClosed(){
+    public boolean isClosed() {
         return mClosed.get();
     }
+
     @Override
     public void close() {
-        if(mClosed.compareAndSet(false, true)){
-            for (CancelableTask task : new ArrayList<>(mTasks)){
+        if (mClosed.compareAndSet(false, true)) {
+            for (CancelableTask task : new ArrayList<>(mTasks)) {
                 task.cancel();
                 task.reset();
             }
@@ -110,9 +116,9 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
         final Runnable produce = new Runnable() {
             @Override
             public void run() {
-                if(ordered){
+                if (ordered) {
                     produceOrdered(context, scheduler, callback);
-                }else {
+                } else {
                     produce0(context, scheduler, callback);
                 }
             }
@@ -127,22 +133,23 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
 
     /**
      * schedule the task , but may not in order. this often called by subclass. outside shouldn't call this.
-     * @param context the context
+     *
+     * @param context   the context
      * @param scheduler the scheduler
-     * @param t the product
-     * @param callback the callback
+     * @param t         the product
+     * @param callback  the callback
      * @return the the scheduled task. which can be cancelled.
      */
     public final Disposable scheduleImpl(final ProductContext context, final Scheduler scheduler, final T t,
-                                             final Callback<T> callback){
+                                         final Callback<T> callback) {
         return post(scheduler, new Runnable() {
             @Override
             public void run() {
-                if(!isClosed()){
+                if (!isClosed()) {
                     callback.onProduced(context, t, EMPTY_TASK);
                     //if is closed or end. dispatch end. left 1 .means only current task is running.
                     checkEndState(context, scheduler, callback, 1);
-                }else {
+                } else {
                     endImpl(context, scheduler, callback);
                 }
             }
@@ -152,25 +159,26 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     /**
      * schedule the task as ordered. if producer is closed or next is null. will dispatch end.
      * this often called by subclass or {@linkplain TaskNode}. others shouldn't call this.
-     * @param context the context
+     *
+     * @param context   the context
      * @param scheduler the scheduler
-     * @param t the product to schedule
-     * @param callback the callback
-     * @param next the next. if is null. means will end.
+     * @param t         the product to schedule
+     * @param callback  the callback
+     * @param next      the next. if is null. means will end.
      * @return the the scheduled task. which can be cancelled.
      */
     public final Disposable scheduleOrdered(final ProductContext context, final Scheduler scheduler, final T t,
-                                                final Callback<T> callback, final Runnable next){
+                                            final Callback<T> callback, final Runnable next) {
         final Runnable nextRun = new Runnable() {
             @Override
             public void run() {
                 //if is closed or end. dispatch end
-                if(isClosed() || next == null){
-                    if(next != null && next instanceof TaskNode){
+                if (isClosed() || next == null) {
+                    if (next != null && next instanceof TaskNode) {
                         ((TaskNode) next).reset();
                     }
                     endImpl(context, scheduler, callback);
-                }else {
+                } else {
                     next.run();
                 }
             }
@@ -183,7 +191,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
         }, new Params(context, scheduler, new SimpleProductionFlow(ProductionFlow.TYPE_DO_PRODUCE, t), callback));
     }
 
-    protected Disposable post(Scheduler scheduler, Runnable task, Params params){
+    protected Disposable post(Scheduler scheduler, Runnable task, Params params) {
         CancelableTask cancelableTask = CancelableTask.of(task, this);
         cancelableTask.setProduceParams(params);
         Disposable disposable = scheduler.newWorker().schedule(cancelableTask.toActuallyTask());
@@ -191,7 +199,7 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
         return cancelableTask;
     }
 
-    protected Disposable postDelay(Scheduler scheduler, Runnable task, long delayInMills, Params params){
+    protected Disposable postDelay(Scheduler scheduler, Runnable task, long delayInMills, Params params) {
         CancelableTask cancelableTask = CancelableTask.of(task, this);
         cancelableTask.setProduceParams(params);
         Disposable disposable = scheduler.newWorker().scheduleDelay(
@@ -201,14 +209,18 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     }
 
     @JustForTest
-    public void assertTaskIsEmpty(){
+    public void assertTaskIsEmpty() {
         Throwables.checkArgument(mTasks.isEmpty(), "task is not empty.");
     }
 
     @Override
     public void onTaskPlan(CancelableTask wrapTask) {
-         mTasks.add(wrapTask);
+        if (isClosed()) {
+            return;
+        }
+        mTasks.add(wrapTask);
     }
+
     @Override
     public void onTaskBegin(CancelableTask wrapTask) {
 
@@ -216,18 +228,26 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
 
     @Override
     public void onTaskEnd(CancelableTask wrapTask, boolean cancelled) {
+        if (isClosed()) {
+            return;
+        }
         mTasks.remove(wrapTask);
     }
+
     @Override
     public void onException(CancelableTask wrapTask, RuntimeException e) {
+        if (isClosed()) {
+            return;
+        }
         Params params = wrapTask.getProduceParams();
         mTasks.remove(wrapTask);
-        if(mExceptionStrategy != null){
+        if (mExceptionStrategy != null) {
             mExceptionStrategy.handleException(this, params, e);
-        }else {
+        } else {
             throw e;
         }
     }
+
     protected void endImpl(final ProductContext context, Scheduler scheduler, final Callback<T> callback) {
         mProduceState.set(STATE_NONE);
         post(scheduler, new Runnable() {
@@ -243,9 +263,10 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     /**
      * check the end state. if the end state and no more tasks. just dispatch end.
      * this often called for produce on 'no-order'.
-     * @param context the context
-     * @param scheduler the scheduler.
-     * @param callback the callback
+     *
+     * @param context       the context
+     * @param scheduler     the scheduler.
+     * @param callback      the callback
      * @param leftTaskCount the left task count. for {@linkplain #markProduceEnd(ProductContext, Scheduler, Callback)} this is 0.
      */
     private void checkEndState(ProductContext context, Scheduler scheduler, Callback<T> callback, int leftTaskCount) {
@@ -257,12 +278,13 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
 
     /**
      * mark produce end. this often called for produce on 'no-order'.
-     * @param context the product context
+     *
+     * @param context   the product context
      * @param scheduler the scheduler
-     * @param callback the callback
+     * @param callback  the callback
      */
-    protected void markProduceEnd(ProductContext context, Scheduler scheduler, Callback<T> callback){
-        if(!isClosed()){
+    protected void markProduceEnd(ProductContext context, Scheduler scheduler, Callback<T> callback) {
+        if (!isClosed()) {
             if (mProduceState.compareAndSet(STATE_START, STATE_END)) {
                 checkEndState(context, scheduler, callback, 0);
             }
@@ -271,20 +293,23 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
 
     /**
      * call this to produce all products really. note: this produce may not in order. it is determined by scheduler.
-     * @param context the product context
+     *
+     * @param context   the product context
      * @param scheduler the scheduler. can be null
-     * @param callback the callback
+     * @param callback  the callback
      */
-    protected void produce0(ProductContext context, Scheduler scheduler, Callback<T> callback){
+    protected void produce0(ProductContext context, Scheduler scheduler, Callback<T> callback) {
         throw new UnsupportedOperationException();
     }
+
     /**
      * produce the product in ordered.
-     * @param context the context
+     *
+     * @param context   the context
      * @param scheduler the scheduler
-     * @param callback the callback
+     * @param callback  the callback
      */
-    protected void produceOrdered(ProductContext context, Scheduler scheduler, Callback<T> callback){
+    protected void produceOrdered(ProductContext context, Scheduler scheduler, Callback<T> callback) {
         throw new UnsupportedOperationException();
     }
 }
