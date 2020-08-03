@@ -5,7 +5,9 @@ import com.heaven7.java.base.util.Platforms;
 import com.heaven7.java.base.util.Scheduler;
 import com.heaven7.java.base.util.threadpool.Executors2;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static com.heaven7.java.pc.schedulers.Schedulers.ANDROID_MAIN;
@@ -66,5 +68,16 @@ public final class Schedulers {
     }
     public static Scheduler common(Executor executor){
         return new CommonScheduler(executor);
+    }
+
+    /**
+     * create AsyncExecutor
+     * @param callable the callable
+     * @param <V> the result type
+     * @return async executor
+     * @since 1.0.5
+     */
+    public static <V> AsyncExecutor async(Callable<V> callable){
+        return new AsyncExecutor<V>(callable);
     }
 }
