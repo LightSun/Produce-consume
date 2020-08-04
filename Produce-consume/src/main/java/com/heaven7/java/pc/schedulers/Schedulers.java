@@ -5,9 +5,7 @@ import com.heaven7.java.base.util.Platforms;
 import com.heaven7.java.base.util.Scheduler;
 import com.heaven7.java.base.util.threadpool.Executors2;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static com.heaven7.java.pc.schedulers.Schedulers.ANDROID_MAIN;
