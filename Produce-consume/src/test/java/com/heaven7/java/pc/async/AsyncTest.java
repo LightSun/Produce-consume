@@ -10,7 +10,7 @@ public class AsyncTest {
     @Test
     public void test1(){
        Async.<Integer, String>just(1)
-               .schedule(Schedulers.io())
+               .scheduler(Schedulers.compute())
                .delay(1000)
                .transformer(new Transformer<Object, String>() {
                    @Override
@@ -21,9 +21,6 @@ public class AsyncTest {
            @Override
            public void run(Response<String> result) {
                System.out.println(result);
-               synchronized (AsyncTest.this){
-                   AsyncTest.this.notify();
-               }
            }
        });
         try {
