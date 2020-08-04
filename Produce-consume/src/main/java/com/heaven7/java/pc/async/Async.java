@@ -53,12 +53,6 @@ public class Async<In, Out> implements Disposable{
     public Response<Out> getResponse(){
         return mResultRef.get();
     }
-    public Async<In, Out> then(Action<Out> task, @Nullable Scheduler observe){
-        return result(task).start(observe);
-    }
-    public Async<In, Out> then(Action<Out> task){
-        return result(task).start(null);
-    }
     public Async<In, Out> manager(AsyncManager am){
         this.manager = am;
         return this;
@@ -99,10 +93,16 @@ public class Async<In, Out> implements Disposable{
             observeDispose = null;
         }
     }
-    public Async<In, Out> start(){
-        return start(null);
+    public void then(Action<Out> task, @Nullable Scheduler observe){
+        result(task).start(observe);
     }
-    public Async<In, Out> start(@Nullable final Scheduler observe){
+    public void then(Action<Out> task){
+        result(task).start(null);
+    }
+    public void start(){
+        start(null);
+    }
+    public void start(@Nullable final Scheduler observe){
         Runnable wrapTask = new Runnable() {
             @Override
             public void run() {
@@ -117,7 +117,6 @@ public class Async<In, Out> implements Disposable{
         if(manager != null){
             manager.addDisposable(this);
         }
-        return this;
     }
     private void run0(@Nullable Scheduler observe){
         In result = null;
