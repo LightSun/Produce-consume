@@ -69,15 +69,4 @@ public final class Schedulers {
     public static Scheduler common(Executor executor){
         return new CommonScheduler(executor);
     }
-
-    /**
-     * create AsyncExecutor
-     * @param callable the callable
-     * @param <V> the result type
-     * @return async executor
-     * @since 1.0.5
-     */
-    public static <V> AsyncExecutor async(Callable<V> callable){
-        return new AsyncExecutor<V>(callable);
-    }
 }

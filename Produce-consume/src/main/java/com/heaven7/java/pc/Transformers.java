@@ -3,7 +3,7 @@ package com.heaven7.java.pc;
 /**
  * @author heaven7
  */
-public class Transformers {
+public final class Transformers {
 
     private static final Transformer<Object, Object> UNCHANGED = new Transformer<Object, Object>() {
         @Override
