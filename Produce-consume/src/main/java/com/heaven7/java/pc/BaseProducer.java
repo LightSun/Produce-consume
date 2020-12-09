@@ -192,6 +192,9 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     }
 
     protected Disposable post(Scheduler scheduler, Runnable task, Params params) {
+        if(scheduler == null || isClosed()){
+            return Disposable.EMPTY;
+        }
         CancelableTask cancelableTask = CancelableTask.of(task, this);
         cancelableTask.setProduceParams(params);
         Disposable disposable = scheduler.newWorker().schedule(cancelableTask.toActuallyTask());
@@ -200,6 +203,9 @@ public abstract class BaseProducer<T> implements Producer<T>, CancelableTask.Cal
     }
 
     protected Disposable postDelay(Scheduler scheduler, Runnable task, long delayInMills, Params params) {
+        if(scheduler == null || isClosed()){
+            return Disposable.EMPTY;
+        }
         CancelableTask cancelableTask = CancelableTask.of(task, this);
         cancelableTask.setProduceParams(params);
         Disposable disposable = scheduler.newWorker().scheduleDelay(
