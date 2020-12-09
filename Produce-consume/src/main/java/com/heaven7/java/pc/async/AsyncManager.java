@@ -2,8 +2,8 @@ package com.heaven7.java.pc.async;
 
 import com.heaven7.java.base.util.Disposable;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author heaven7
@@ -11,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public final class AsyncManager {
 
-    private final List<Disposable> mList = new CopyOnWriteArrayList<>();
+    private final Set<Disposable> mList = new CopyOnWriteArraySet<>();
 
     public void addDisposable(Disposable disposable){
         mList.add(disposable);
