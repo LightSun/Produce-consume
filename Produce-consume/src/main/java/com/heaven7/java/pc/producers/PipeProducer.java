@@ -263,7 +263,8 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
         @Override
         public void addProduct(T t) {
             if(isClosed()){
-                throw new IllegalStateException("pip is closed");
+                System.err.println("pip is closed");
+                return;
             }
             if (producer.isPrepared()) {
                 producer.fire(t, null);
@@ -280,7 +281,8 @@ public final class PipeProducer<T> extends BaseProducer<T> implements Runnable {
         @Override
         public void addProducts(List<T> ts) {
             if(isClosed()){
-                throw new IllegalStateException("pip is closed");
+                System.err.println("pip is closed");
+                return;
             }
             if (producer.isPrepared()) {
                 producer.fire(null, ts);
