@@ -13,8 +13,8 @@ buildscript {
     }
 }
 allprojects {
-    version = "1.0.5"
-    group = 'com.github.LightSun.Java-base'
+    //version = "1.0.5"
+    //group = 'com.github.LightSun.Produce-consume'
 
     tasks.withType(Javadoc) {
         options.addStringOption('Xdoclint:none', '-quiet')
