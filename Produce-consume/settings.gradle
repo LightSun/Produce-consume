@@ -1,2 +1,3 @@
-rootProject.name = 'produce-consume'
+//rootProject.name = 'produce-consume'
+include ":core"
 

@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
  */
 public final class SimpleAsync<T> extends Async<T, T> {
 
-    public SimpleAsync(Callable actTask) {
+    public SimpleAsync(Callable<T> actTask) {
         super(actTask);
     }
 

@@ -8,6 +8,8 @@ import com.heaven7.java.pc.Transformer;
 import com.heaven7.java.pc.Transformers;
 import com.heaven7.java.pc.schedulers.Schedulers;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,16 +24,18 @@ public class Async<In, Out> implements Disposable{
     private final Callable<In> actTask;
     private AsyncManager manager;
     private long delay;
-    private Scheduler scheduler;
+    protected Scheduler scheduler;
 
     private Disposable scheduleDispose;
-    private Disposable observeDispose;
+    protected Disposable observeDispose;
 
-    private final AtomicReference<Response> mResultRef = new AtomicReference<>();
-    private Transformer<In, Out> transformer = (Transformer<In, Out>) Transformers.unchangeTransformer();
+    private final AtomicReference<Response<?>> mResultRef = new AtomicReference<>();
+    protected Transformer<In, Out> transformer = (Transformer<In, Out>) Transformers.unchangeTransformer();
     private Action<Out> resultTask;
     private Action<Throwable> exceptionTask;
     private ProductContext context;
+
+    private final List<Disposable> mDisposeTasks = new ArrayList<>(4);
 
     public Async(Callable<In> actTask) {
         this(null, actTask);
@@ -50,14 +54,22 @@ public class Async<In, Out> implements Disposable{
         });
     }
 
-    public Response<Out> getResponse(){
+    /**
+     * add task to do on cancel.
+     * @param task the dispose task
+     * @since 1.0.5
+     */
+    public void addDisposeTask(Disposable task) {
+        mDisposeTasks.add(task);
+    }
+
+    public Response getResponse(){
         return mResultRef.get();
     }
     public Async<In, Out> manager(AsyncManager am){
         this.manager = am;
         return this;
     }
-
     public Async<In, Out> scheduler(Scheduler scheduler){
         this.scheduler = scheduler;
         return this;
@@ -74,9 +86,20 @@ public class Async<In, Out> implements Disposable{
         exceptionTask = task;
         return this;
     }
-    public Async<In, Out> transformer(Transformer<? super In, String> transformer){
+    public Async<In, Out> transformer(Transformer<? super In, Out> transformer){
         this.transformer = (Transformer<In, Out>) transformer;
         return this;
+    }
+
+    /**
+     * extend method used by subs
+     * @param transformer the transformer
+     * @param p the extra param
+     * @return this
+     * @since 1.0.5
+     */
+    public Async<In, Out> transformer2(Transformer transformer, Object p){
+        throw new UnsupportedOperationException();
     }
     public Async<In, Out> context(ProductContext context){
         this.context = context;
@@ -92,6 +115,10 @@ public class Async<In, Out> implements Disposable{
             observeDispose.dispose();
             observeDispose = null;
         }
+        for (Disposable d: mDisposeTasks) {
+            d.dispose();
+        }
+        mDisposeTasks.clear();
     }
     public void then(Action<Out> task, @Nullable Scheduler observe){
         result(task).start(observe);
@@ -120,35 +147,25 @@ public class Async<In, Out> implements Disposable{
     }
     private void run0(@Nullable Scheduler observe){
         In result = null;
-        Exception exp = null;
+        Throwable exp = null;
         if(actTask != null){
             try {
                 result = actTask.call();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 exp = e;
             }
         }
-        if(observe == null){
-            callback(result, exp);
-        }else {
-            final In result1 = result;
-            final Exception exp1 = exp;
-            observeDispose = observe.newWorker().schedule(new Runnable() {
-                @Override
-                public void run() {
-                    callback(result1, exp1);
-                }
-            });
-        }
+        scheduleImpl(observe, result, exp);
     }
-    @SuppressWarnings("unchecked")
-    private void callback(In result, Throwable e0){
+    protected void callback(In result, Throwable e0){
         if(manager != null){
             manager.removeDisposable(this);
         }
         if(e0 != null){
             callbackException(e0);
-        }else{
+        }else if(mResultRef.get() != null && mResultRef.get().getThrowable() != null){
+            callbackException0(mResultRef.get());
+        } else{
             try {
                 resultTask.run(saveResult(Response.ofSuccess(transformer.transform(context, result))));
             }catch (Throwable e){
@@ -156,13 +173,12 @@ public class Async<In, Out> implements Disposable{
             }
         }
     }
-    private Response saveResult(Response response){
+    protected <R> Response<R> saveResult(Response<R> response){
         if(!mResultRef.compareAndSet(null, response)){
-            System.err.println("saveResult failed");
+           // System.err.println("saveResult failed");
         }
         return response;
     }
-    @SuppressWarnings("unchecked")
     private void callbackException(Throwable e){
         if(exceptionTask != null){
             exceptionTask.run(saveResult(Response.ofThrowable(e)));
@@ -174,8 +190,36 @@ public class Async<In, Out> implements Disposable{
             }
         }
     }
+    protected void callbackException0(Response res){
+        if(exceptionTask != null){
+            exceptionTask.run(res);
+        }else{
+            Throwable e = res.getThrowable();
+            if(e instanceof RuntimeException){
+                throw (RuntimeException)e;
+            }else{
+                throw new AsyncException(e);
+            }
+        }
+    }
     //==========================================
     private Scheduler getScheduler(){
         return scheduler != null ? scheduler : Schedulers.io();
+    }
+
+    //--------------- protected -----------
+    protected void scheduleImpl(@Nullable Scheduler observe, In result, Throwable exp){
+        if(observe == null){
+            callback(result, exp);
+        }else {
+            final In result1 = result;
+            final Throwable exp1 = exp;
+            observeDispose = observe.newWorker().schedule(new Runnable() {
+                @Override
+                public void run() {
+                    callback(result1, exp1);
+                }
+            });
+        }
     }
 }

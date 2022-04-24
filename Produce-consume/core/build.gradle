@@ -1,0 +1,9 @@
+apply plugin: "java"
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+
+    implementation "com.github.LightSun.Java-base:base:1.2.5.2"
+}
+
+//cmd: gradle bintrayUpload -PbintrayUser=lightsun -PbintrayKey=xxx -PdryRun=false

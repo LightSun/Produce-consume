@@ -1,38 +1,84 @@
 
-apply plugin: 'java'
-apply plugin: 'com.novoda.bintray-release'
-
-sourceCompatibility = 1.7
-targetCompatibility = 1.8
-
 buildscript {
+//    ext{
+//        version = "1.2.4"
+//        group = 'com.github.LightSun.Java-base'
+//    }
     repositories {
-        jcenter()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath 'com.novoda:bintray-release:0.4.0'
+        // url "https://plugins.gradle.org/m2/"
+    }
+}
+allprojects {
+    version = "1.0.5"
+    group = 'com.github.LightSun.Java-base'
+
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+        options.addStringOption('encoding', 'UTF-8')
+    }
+    repositories {
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
 
-repositories {
-    jcenter()
-    mavenCentral()
-}
-tasks.withType(JavaCompile) {
-    options.encoding = "UTF-8"
-}
-dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
+    apply plugin: "java-library"
 
-    compile 'com.heaven7.java.base:Java-base:1.1.9'
+    sourceCompatibility = 1.8 // java 8
+    targetCompatibility = 1.8
+//6.9.2 ok
+//    java {
+//        withSourcesJar()
+//        withJavadocJar()
+//    }
+    task sourceJar(type: Jar) {
+        classifier "sources"
+        from sourceSets.main.allJava
+    }
+    task javadocJar(type: Jar) {
+        from javadoc
+        classifier 'javadoc'
+    }
+    publishing {
+        publications {
+            binary(MavenPublication) {
+                from components.java
+            }
+            binaryAndSources(MavenPublication) {
+                from components.java
+                artifact sourceJar
+            }
+            //mavenJava or maven(high version)
+            mavenJava(MavenPublication) {
+                groupId project.group
+                artifactId project.name
+                version project.version
+                from components.java
+
+                artifact sourceJar
+                artifact javadocJar
+            }
+        }
+    }
+
+    tasks.withType(PublishToMavenRepository) {
+        onlyIf {
+            return publication == publishing.publications.binaryAndSources
+        }
+    }
+    tasks.withType(PublishToMavenLocal) {
+        onlyIf {
+            publication == publishing.publications.binaryAndSources
+        }
+    }
 }
 
-publish {
-    userOrg = 'lightsun'
-    groupId = 'com.heaven7.java.pc'
-    artifactId = 'Produce-consume'
-    publishVersion = '1.0.0'
-    desc = 'this is a java lib which used for produce and cosumer. '
-    website = 'https://github.com/LightSun/Produce-consume'
-}
 //cmd: gradle bintrayUpload -PbintrayUser=lightsun -PbintrayKey=xxx -PdryRun=false
