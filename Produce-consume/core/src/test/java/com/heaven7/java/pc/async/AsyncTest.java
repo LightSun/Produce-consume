@@ -35,7 +35,7 @@ public class AsyncTest {
                 .everySize(8)
                 .scheduler(Schedulers.io())
                 .delay(1000)
-                .transformer2(new Transformer<List<Integer>, String>() {
+                .transformer(new Transformer<List<Integer>, String>() {
                     @Override
                     public String transform(ProductContext context, List<Integer> list) {
                         StringBuilder sb = new StringBuilder();

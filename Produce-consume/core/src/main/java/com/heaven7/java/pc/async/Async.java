@@ -5,6 +5,7 @@ import com.heaven7.java.base.util.Disposable;
 import com.heaven7.java.base.util.Scheduler;
 import com.heaven7.java.pc.ProductContext;
 import com.heaven7.java.pc.Transformer;
+import com.heaven7.java.pc.Transformer2;
 import com.heaven7.java.pc.Transformers;
 import com.heaven7.java.pc.schedulers.Schedulers;
 
@@ -98,9 +99,20 @@ public class Async<In, Out> implements Disposable{
      * @return this
      * @since 1.0.5
      */
-    public Async<In, Out> transformer2(Transformer transformer, Object p){
+    public Async<In, Out> transformer(Transformer transformer, Object p){
         throw new UnsupportedOperationException();
     }
+    /**
+     * extend method used by subs
+     * @param transformer the transformer
+     * @param p the extra param
+     * @return this
+     * @since 1.0.5
+     */
+    public Async<In, Out> transformer2(Transformer2 transformer, Object p){
+        throw new UnsupportedOperationException();
+    }
+
     public Async<In, Out> context(ProductContext context){
         this.context = context;
         return this;

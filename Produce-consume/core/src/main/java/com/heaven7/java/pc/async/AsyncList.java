@@ -3,6 +3,7 @@ package com.heaven7.java.pc.async;
 import com.heaven7.java.base.util.Predicates;
 import com.heaven7.java.pc.ProductContext;
 import com.heaven7.java.pc.Transformer;
+import com.heaven7.java.pc.Transformer2;
 import com.heaven7.java.pc.utils.Pair;
 
 import java.util.*;
@@ -36,7 +37,16 @@ public class AsyncList<In, Out> extends Async<List<In>, List<Out>>{
         mEverySize = everySize;
         return this;
     }
-
+    @Override
+    @SuppressWarnings("unchecked")
+    public AsyncList<In, Out> transformer(Transformer transformer, Object param) {
+        return transformer2(new Transformer2<List<In>, Out>() {
+            @Override
+            public Out transform(ProductContext context, List<In> o, Object everyParam) {
+                return (Out) transformer.transform(context, o);
+            }
+        }, param);
+    }
     /**
      * extend transformer.
      * @param transformer the transformer should be 'Transformer<List<In>, Out>'
@@ -45,29 +55,28 @@ public class AsyncList<In, Out> extends Async<List<In>, List<Out>>{
      */
     @Override
     @SuppressWarnings("unchecked")
-    public AsyncList<In, Out> transformer2(Transformer transformer, Object param) {
+    public AsyncList<In, Out> transformer2(Transformer2 transformer, Object param) {
         final boolean inOrder = Predicates.isTrue(param);
         this.transformer = new Transformer<List<In>, List<Out>>() {
             @Override
             public List<Out> transform(ProductContext context, List<In> ins) {
                 if(mEverySize > 0){
-                    int c = ins.size() / mEverySize + (ins.size() % mEverySize != 0 ? 1 : 0);
-
+                    final int c = ins.size() / mEverySize + (ins.size() % mEverySize != 0 ? 1 : 0);
                     int start;
                     if(scheduler != null){
                         final List<Pair<Integer, Out>> pairs = new ArrayList<>();
                         CountDownLatch ldt = new CountDownLatch(c);
                         for (int i = 0 ; i < c ; i ++){
-                            System.out.println("transformer2:  i = " + i);
+                            //System.out.println("transformer2:  i = " + i);
                             start = i * mEverySize;
                             final int index = i;
                             final List<In> list = ins.subList(start, i != c - 1 ? start + mEverySize : ins.size());
                             addDisposeTask(scheduler.newWorker().schedule(new Runnable() {
                                 @Override
                                 public void run() {
-                                    System.out.println("transformer2:  done index = " + index);
+                                    //System.out.println("transformer2:  done index = " + index);
                                     try{
-                                        Out out = (Out) transformer.transform(context, list);
+                                        Out out = (Out) transformer.transform(context, list, new IterateData(index, c));
                                         pairs.add(new Pair<Integer, Out>(index, out));
                                     }finally {
                                         ldt.countDown();
@@ -95,12 +104,12 @@ public class AsyncList<In, Out> extends Async<List<In>, List<Out>>{
                         for (int i = 0 ; i < c ; i ++){
                             start = i * mEverySize;
                             final List<In> list = ins.subList(start, i != c - 1 ? start + mEverySize : ins.size());
-                            result.add((Out) transformer.transform(context, list));
+                            result.add((Out) transformer.transform(context, list, new IterateData(i, c)));
                         }
                         return result;
                     }
                 }
-                return Arrays.asList((Out)transformer.transform(context, ins));
+                return Arrays.asList((Out)transformer.transform(context, ins, new IterateData(0, ins.size())));
             }
         };
         return this;
@@ -111,4 +120,28 @@ public class AsyncList<In, Out> extends Async<List<In>, List<Out>>{
             return Integer.compare(o1.key, o2.key);
         }
     };
+    public static class IterateData{
+        private int index;
+        private int size;
+        public IterateData(int index, int size) {
+            this.index = index;
+            this.size = size;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public void setIndex(int index) {
+            this.index = index;
+        }
+
+        public int getSize() {
+            return size;
+        }
+
+        public void setSize(int size) {
+            this.size = size;
+        }
+    }
 }
