@@ -2,6 +2,7 @@ package com.heaven7.java.pc.async;
 
 import com.heaven7.java.pc.ProductContext;
 import com.heaven7.java.pc.Transformer;
+import com.heaven7.java.pc.Transformer2;
 import com.heaven7.java.pc.schedulers.Schedulers;
 import org.junit.Test;
 
@@ -38,6 +39,39 @@ public class AsyncTest {
                 .transformer(new Transformer<List<Integer>, String>() {
                     @Override
                     public String transform(ProductContext context, List<Integer> list) {
+                        StringBuilder sb = new StringBuilder();
+                        for (Integer i : list) {
+                            sb.append(i).append("_");
+                        }
+                        return sb.toString();
+                    }
+                }, true)
+                .exception(new Action<Throwable>() {
+                    @Override
+                    public void run(Response<Throwable> result) {
+                        result.getThrowable().printStackTrace();
+                    }
+                })
+                .then(new Action<List<Object>>() {
+                    @Override
+                    public void run(Response<List<Object>> result) {
+                        for (Object obj : result.getData()){
+                            System.out.println(obj.toString());
+                        }
+                        release();
+                    }
+                }, Schedulers.single());
+        waitFor();
+    }
+    @Test
+    public void testList2(){
+        Asyncs.justMulti(1, 100)
+                .everySize(8)
+                .scheduler(Schedulers.io())
+                .delay(1000)
+                .transformer2(new Transformer2<List<Integer>, String>() {
+                    @Override
+                    public String transform(ProductContext context, List<Integer> list, Object p) {
                         StringBuilder sb = new StringBuilder();
                         for (Integer i : list) {
                             sb.append(i).append("_");
